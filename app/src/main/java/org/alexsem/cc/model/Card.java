@@ -1,0 +1,148 @@
+package org.alexsem.cc.model;
+
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.RectF;
+
+public class Card {
+
+    public static final int HERO_MAX = 13;
+
+    public enum Type {
+        FLEX, FEAR, HIT, BLOCK, DRINK, CASH, ZAP
+    }
+
+    public enum Ability {
+        SAP, LEECH, SACRIFICE, VANISH, POTIONIZE, BASH, LASH, EXCHANGE, STEAL, KILLER
+    }
+
+    private static final String[] mobNames = {"", "", "CROW", "CROW", "SLIME", "SLIME", "SPIDER", "SPIDER", "GOBLIN", "TROLL", "SOULEATER"};
+    private static final Type[] types = Type.values();
+    private static final Ability[] abilities = Ability.values();
+
+    private Type type;
+    private int value;
+    private boolean active;
+    private boolean wounded;
+    private String name;
+    private Ability ability = null;
+
+    public Type getType() {
+        return type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
+    }
+
+    public int getValue() {
+        return value;
+    }
+
+    public void setValue(int value) {
+        this.value = value;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public boolean isWounded() {
+        return wounded;
+    }
+
+    public void setWounded(boolean wounded) {
+        this.wounded = wounded;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Ability getAbility() {
+        return ability;
+    }
+
+    public void setAbility(Ability ability) {
+        this.ability = ability;
+    }
+
+    public static Card getHero() {
+        Card card = new Card();
+        card.setType(Type.FLEX);
+        card.setValue(HERO_MAX);
+        card.setActive(true);
+        card.setWounded(false);
+        card.setName("");
+        return card;
+    }
+
+    public static Card getSpecial() {
+        Card card = new Card();
+        card.setType(Type.ZAP);
+        card.setActive(true);
+        card.setWounded(false);
+        card.setAbility(abilities[(int) (Math.random() * abilities.length)]);
+//        card.setAbility(abilities[(int) (Math.random() * 5) + 5]);
+        card.setName(card.getAbility().name().toUpperCase());
+        switch (card.getAbility()) {
+            case LASH:
+                card.setValue(3);
+                break;
+            case LEECH:
+                card.setValue(5);
+                break;
+            default:
+                card.setValue(0);
+                break;
+        }
+        return card;
+    }
+
+    public static Card getOther(Type type, int value) {
+        Card card = new Card();
+        card.setType(type);
+        card.setValue(value);
+        card.setActive(true);
+        card.setWounded(false);
+        if (type == Type.FEAR) {
+            card.setName(mobNames[value]);
+        } else {
+            card.setName("");
+        }
+        return card;
+    }
+
+    @Deprecated
+    public static Card random() {
+        Card card = new Card();
+        card.setType(types[(int) (Math.random() * (types.length - 1)) + 1]);
+        switch (card.getType()) {
+            case FEAR:
+            case DRINK:
+            case CASH:
+                card.setValue((int) (Math.random() * 9) + 2);
+                break;
+            case HIT:
+            case BLOCK:
+                card.setValue((int) (Math.random() * 6) + 2);
+                break;
+            case ZAP:
+                card = getSpecial();
+                break;
+        }
+        card.setActive(true);
+        card.setWounded(false);
+        return card;
+    }
+
+
+}
