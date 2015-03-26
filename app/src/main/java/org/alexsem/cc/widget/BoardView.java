@@ -142,9 +142,9 @@ public class BoardView extends View {
 //        card.setName("SAP");
 //        mRowTop[1].setCard(card);
 //
-        for (int i = 0; i < 48; i++) { //TODO
-            mDeck.deal();
-        }
+//        for (int i = 0; i < 48; i++) { //TODO
+//            mDeck.deal();
+//        }
 
 
     }
