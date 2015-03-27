@@ -3,6 +3,7 @@ package org.alexsem.cc.widget;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
@@ -20,7 +21,7 @@ import org.alexsem.cc.model.Deck;
 public class BoardView extends View {
 
     private static final int COLOR_BG_CARD = 0xffc0c0c0;
-    private static final int COLOR_BG_TINT = 0xa0000000;
+    private static final int COLOR_BG_TINT = 0xb0000000;
     private static final int COLOR_REGULAR = 0xff000000;
     private static final int COLOR_EMPH = 0xff922b22;
     private static final int COLOR_SPECIAL = 0xff2cc5c6;
@@ -129,7 +130,6 @@ public class BoardView extends View {
         isDiscarding = false;
         isGameOver = false;
         isMeasurementChanged = true;
-        isGameOver = false;
         invalidate();
 
 
@@ -601,7 +601,6 @@ public class BoardView extends View {
         Card hero = mRowBottom[1].getCard();
         if (hero.getValue() <= 0) { //Check hero health
             animateHeroVanish();
-            isGameOver = true;
             return;
         }
         if (mDeck.size() == 0) { //Check deck size
@@ -744,7 +743,7 @@ public class BoardView extends View {
                     } else if (value >= 3) {
                         canvas.drawArc(new RectF(cx - radius * 4 / 6 + radius * (value - 3) / 6, cy + radius * 7 / 6, cx + radius * 4 / 6 - radius * (value - 3) / 6, cy + radius * 4 / 3), 180, 180, false, mPaint);
                     } else if (value >= 0) {
-                        canvas.drawArc(new RectF(cx - radius * 4 / 6, cy + radius * 7 / 6, cx + radius * 4 / 6, cy + radius * 4 / 3 + radius * (3-value) / 6), 180, 180, false, mPaint);
+                        canvas.drawArc(new RectF(cx - radius * 4 / 6, cy + radius * 7 / 6, cx + radius * 4 / 6, cy + radius * 4 / 3 + radius * (3 - value) / 6), 180, 180, false, mPaint);
                     }
 
 
@@ -935,6 +934,7 @@ public class BoardView extends View {
             mPaint.setStrokeWidth(STROKE_WIDTH);
             RectF rect = mDiscardBox.getRect();
             canvas.drawRect(rect, mPaint);
+            mPaint.setStrokeWidth(STROKE_WIDTH / 2);
             canvas.drawLine(rect.left, rect.top, rect.right, rect.bottom, mPaint);
             canvas.drawLine(rect.right, rect.top, rect.left, rect.bottom, mPaint);
         }
@@ -1573,7 +1573,9 @@ public class BoardView extends View {
     private class HeroVanishAnimation implements Animation {
 
         private float curRelHeight;
+        private float curTint;
         private float dh;
+        private float dt;
 
         private int ticksLeft;
 
@@ -1581,6 +1583,8 @@ public class BoardView extends View {
             RectF rect = mRowBottom[1].getRect();
             curRelHeight = rect.top;
             ticksLeft = (int) ((rect.bottom - rect.top) / mDragReturnSpeed * 8); //!!! change
+            curTint = 0;
+            dt = (176f / ticksLeft);
             dh = rect.height() / ticksLeft;
         }
 
@@ -1592,6 +1596,7 @@ public class BoardView extends View {
         @Override
         public void tick() {
             curRelHeight += dh;
+            curTint += dt;
             ticksLeft--;
         }
 
@@ -1602,11 +1607,13 @@ public class BoardView extends View {
             canvas.clipRect(rect.left, curRelHeight, rect.right, rect.bottom);
             drawPosition(canvas, mRowBottom[1], CardState.REGULAR);
             canvas.restore();
+            canvas.drawColor(Color.argb((int) curTint, 0, 0, 0));
         }
 
         @Override
         public void finish() {
             mRowBottom[1].setCard(null);
+            isGameOver = true;
         }
     }
 
@@ -1916,7 +1923,7 @@ public class BoardView extends View {
             curRelX = (getMeasuredWidth() / 2 - rect.left - rect.width() / 2);
             curRelY = (getMeasuredHeight() / 2 - rect.top - rect.height() / 2);
             curScale = 1;
-            ticksLeft = (int)(Math.sqrt(curRelX * curRelX + curRelY + curRelY)) / mDragReturnSpeed * 20; //!!! change
+            ticksLeft = (int) (Math.sqrt(curRelX * curRelX + curRelY + curRelY)) / mDragReturnSpeed * 20; //!!! change
             dx = curRelX / ticksLeft;
             dy = curRelY / ticksLeft;
             curRelX = 0;
