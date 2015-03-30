@@ -21,7 +21,7 @@ import org.alexsem.cc.model.Deck;
 public class BoardView extends View {
 
     private static final int COLOR_BG_CARD = 0xffc0c0c0;
-    private static final int COLOR_BG_TINT = 0xb0000000;
+    private static final int COLOR_BG_TINT = 0xa0000000;
     private static final int COLOR_REGULAR = 0xff000000;
     private static final int COLOR_EMPH = 0xff922b22;
     private static final int COLOR_SPECIAL = 0xff2cc5c6;
@@ -1009,8 +1009,8 @@ public class BoardView extends View {
             mDiscardAnimation.draw(canvas);
         }
 
-        if (isGameOver) {  //TODO remove
-            canvas.drawColor(COLOR_BG_TINT);
+        if (isGameOver) {
+            canvas.drawColor(0xdd000000);
         }
 
         if (mDragReturnTicks > 0 || mDealAnimationCount > 0 || mReceiveAnimationCount > 0 || mDropAnimationCount > 0 || isHeroAnimated || mCardAnimationCount > 0 || isDiscarding) { //Need to animate
@@ -1584,7 +1584,7 @@ public class BoardView extends View {
             curRelHeight = rect.top;
             ticksLeft = (int) ((rect.bottom - rect.top) / mDragReturnSpeed * 8); //!!! change
             curTint = 0;
-            dt = (176f / ticksLeft);
+            dt = 221f / ticksLeft;
             dh = rect.height() / ticksLeft;
         }
 
