@@ -71,7 +71,7 @@ public class Deck {
             cards.add(Card.getOther(Card.Type.DRINK, i));
             cards.add(Card.getOther(Card.Type.CASH, i));
         }
-        cards.add(Card.getOther(Card.Type.FEAR, (int) (Math.random() * 9) + 2));
+        cards.add(Card.getOther(Card.Type.FEAR, 10));
         //Swords & Shields
         for (int i = 2; i <= 7; i++) {
             cards.add(Card.getOther(Card.Type.HIT, i));
