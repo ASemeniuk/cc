@@ -27,6 +27,7 @@ public class BoardView extends View {
     private static final int COLOR_SPECIAL = 0xff2cc5c6;
 
     private final int LOC_LEFT_HAND = 10;
+    private final int LOC_HERO = 11;
     private final int LOC_RIGHT_HAND = 12;
     private final int LOC_BACKPACK = 13;
 
@@ -134,12 +135,10 @@ public class BoardView extends View {
 
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.BASH);
-//        card.setName("BASH");
-//        mRowTop[0].setCard(card);
+//        card.setAbility(Card.Ability.LASH);
+//        mRowBottom[0].setCard(card);
 //        card = Card.getSpecial();
-//        card.setAbility(Card.Ability.SAP);
-//        card.setName("SAP");
+//        card.setAbility(Card.Ability.POTIONIZE);
 //        mRowTop[1].setCard(card);
 //
 //        for (int i = 0; i < 48; i++) { //TODO
@@ -404,7 +403,7 @@ public class BoardView extends View {
             case FEAR:
                 if (dstCard != null && dstCard.getType() == Card.Type.FLEX) { //Endure attack
                     dstCard.setValue(Math.max(0, dstCard.getValue() - srcCard.getValue()));
-                    animateHeroSuffer();
+                    animateCardSuffer(LOC_HERO);
                     srcPosition.setCard(null);
                 } else if (dstCard != null && dstCard.getType() == Card.Type.BLOCK) { //Block attack
                     if (dstCard.getValue() > srcCard.getValue()) { //Shield can take damage (and more)
@@ -416,7 +415,7 @@ public class BoardView extends View {
                         dstPosition.setCard(null);
                     } else { //Shield is too weak
                         hero.setValue(Math.max(0, hero.getValue() - (srcCard.getValue() - dstCard.getValue())));
-                        animateHeroSuffer();
+                        animateCardSuffer(LOC_HERO);
                         animateCardCrack(dstCard, destination);
                         dstPosition.setCard(null);
                     }
@@ -449,7 +448,7 @@ public class BoardView extends View {
                 if (destination == LOC_LEFT_HAND || destination == LOC_RIGHT_HAND) { //Actually use
                     srcCard.setActive(false);
                     hero.setValue(Math.min(Card.HERO_MAX, hero.getValue() + srcCard.getValue()));
-                    animateHeroImprove();
+                    animateCardImprove(LOC_HERO);
                 }
                 break;
             case CASH:
@@ -481,7 +480,7 @@ public class BoardView extends View {
                             }
                             srcPosition.setCard(null);
                             hero.setValue(Math.min(Card.HERO_MAX, hero.getValue() + leeched));
-                            animateHeroImprove();
+                            animateCardImprove(LOC_HERO);
                             break;
                         case SACRIFICE:
                             int sacrificed = Card.HERO_MAX - hero.getValue();
@@ -497,6 +496,7 @@ public class BoardView extends View {
                             break;
                         case POTIONIZE:
                             dstCard.setType(Card.Type.DRINK);
+                            animateCardImprove(destination);
                             srcPosition.setCard(null);
                             break;
                         case VANISH:
@@ -525,12 +525,12 @@ public class BoardView extends View {
                         case LASH:
                             for (int i = 0; i < 4; i++) {
                                 Card card = mRowTop[i].getCard();
-                                if (card != null && card.getType() == Card.Type.FEAR) {
-                                    if (card.getValue() > srcCard.getValue()) { //Mob can take damage (and more)
+                                if (card != null && (card.getType() != Card.Type.ZAP)) {
+                                    if (card.getValue() > srcCard.getValue()) { //Card can take damage (and more)
                                         card.setValue(card.getValue() - srcCard.getValue());
                                         animateCardSuffer(i);
                                         card.setWounded(true);
-                                    } else { //Mob will be defeated
+                                    } else { //Card will be defeated
                                         animateCardCrack(mRowTop[i].getCard(), i);
                                         mRowTop[i].setCard(null);
                                     }
@@ -1236,6 +1236,21 @@ public class BoardView extends View {
     }
 
     /**
+     * Start hero quaff animation
+     * @param target Target location
+     */
+    private void animateCardImprove(int target) {
+        Position position = (target < 10 ? mRowTop[target] : mRowBottom[target - 10]);
+        mCardAnimationCount++;
+        if (target < 10) {
+            mCardAnimationTop[target] = new CardImproveAnimation(position);
+        } else {
+            mCardAnimationBottom[target - 10] = new CardImproveAnimation(position);
+        }
+        invalidate();
+    }
+
+    /**
      * Start hero appear animation
      */
     private void animateHeroAppear() {
@@ -1251,24 +1266,6 @@ public class BoardView extends View {
     private void animateHeroVanish() {
         isHeroAnimated = true;
         mHeroAnimation = new HeroVanishAnimation();
-        invalidate();
-    }
-
-    /**
-     * Start hero suffer animation
-     */
-    private void animateHeroSuffer() {
-        isHeroAnimated = true;
-        mHeroAnimation = new HeroSufferAnimation();
-        invalidate();
-    }
-
-    /**
-     * Start hero quaff animation
-     */
-    private void animateHeroImprove() {
-        isHeroAnimated = true;
-        mHeroAnimation = new HeroImproveAnimation();
         invalidate();
     }
 
@@ -1620,59 +1617,19 @@ public class BoardView extends View {
     //----------------------------------------------------------------------------------------------
 
     /**
-     * Animation class for hero suffering
+     * Animation class for card improvement
      */
-    private class HeroSufferAnimation implements Animation {
-
-        private final float[] CX = {0f, -1f, 1f, -1f, 1f, -0.8f, 1f, 0f, 1f, 1f, -1f};
-        private final float[] CY = {0f, -0.8f, 0f, 0.8f, 0f, 0.8f, -0.8f, 0f, 0.8f, 0f, 0.8f};
-
-        private float mStepLength;
-        private int mCurrentStep;
-
-        public HeroSufferAnimation() {
-            RectF rect = mRowBottom[1].getRect();
-            mStepLength = rect.width() / 12; //!!! change
-            mCurrentStep = 0;
-        }
-
-        @Override
-        public boolean isFinished() {
-            return mCurrentStep >= CX.length;
-        }
-
-        @Override
-        public void tick() {
-            mCurrentStep++;
-        }
-
-        @Override
-        public void draw(Canvas canvas) {
-            canvas.save();
-            canvas.translate(mStepLength * CX[mCurrentStep], mStepLength * CY[mCurrentStep]);
-            drawPosition(canvas, mRowBottom[1], CardState.REGULAR);
-            canvas.restore();
-        }
-
-        @Override
-        public void finish() {
-        }
-    }
-
-    //----------------------------------------------------------------------------------------------
-
-    /**
-     * Animation class for hero quaffing
-     */
-    private class HeroImproveAnimation implements Animation {
+    private class CardImproveAnimation implements Animation {
 
         private final float[] CS = {1.1f, 1.2f, 1.3f, 1.4f, 1.5f, 1.34f, 1.16f, 1f};
 
+        private Position position;
         private RectF rect;
         private int mCurrentStep;
 
-        public HeroImproveAnimation() {
-            rect = mRowBottom[1].getRect();
+        public CardImproveAnimation(Position position) {
+            this.position = position;
+            rect = position.getRect();
             mCurrentStep = 0;
         }
 
@@ -1690,7 +1647,7 @@ public class BoardView extends View {
         public void draw(Canvas canvas) {
             canvas.save();
             canvas.scale(CS[mCurrentStep], CS[mCurrentStep], rect.left + rect.width() / 2, rect.top + rect.height() / 2);
-            drawPosition(canvas, mRowBottom[1], CardState.REGULAR);
+            drawPosition(canvas, position, CardState.REGULAR);
             canvas.restore();
         }
 

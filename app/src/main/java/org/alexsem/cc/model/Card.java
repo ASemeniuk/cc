@@ -73,6 +73,18 @@ public class Card {
 
     public void setAbility(Ability ability) {
         this.ability = ability;
+        this.setName(this.getAbility().name().toUpperCase());
+        switch (this.getAbility()) {
+            case LASH:
+                this.setValue(3);
+                break;
+            case LEECH:
+                this.setValue(5);
+                break;
+            default:
+                this.setValue(0);
+                break;
+        }
     }
 
     public static Card getHero() {
@@ -92,18 +104,6 @@ public class Card {
         card.setWounded(false);
         card.setAbility(abilities[(int) (Math.random() * abilities.length)]);
 //        card.setAbility(abilities[(int) (Math.random() * 5) + 5]);
-        card.setName(card.getAbility().name().toUpperCase());
-        switch (card.getAbility()) {
-            case LASH:
-                card.setValue(3);
-                break;
-            case LEECH:
-                card.setValue(5);
-                break;
-            default:
-                card.setValue(0);
-                break;
-        }
         return card;
     }
 
