@@ -135,7 +135,7 @@ public class BoardView extends View {
 
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.LASH);
+//        card.setAbility(Card.Ability.FORTIFY);
 //        mRowBottom[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
@@ -297,9 +297,11 @@ public class BoardView extends View {
      * @return true or false
      */
     private boolean canReceiveThis(int source, int destination) {
+        if (source == destination) {
+            return false;
+        }
         Card srcCard = source >= 10 ? mRowBottom[source - 10].getCard() : mRowTop[source].getCard();
         Card dstCard = destination >= 10 ? mRowBottom[destination - 10].getCard() : mRowTop[destination].getCard();
-
         switch (srcCard.getType()) {
             case FEAR:
                 if (dstCard != null) {
@@ -354,6 +356,8 @@ public class BoardView extends View {
                             return (dstCard.getType() == Card.Type.FLEX && mDeck.size() > 0 && mRowBottom[3].getCard() == null && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case KILLER:
                             return (dstCard.getType() == Card.Type.FEAR && destination < 10 && dstCard.isWounded() && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                        case FORTIFY:
+                            return (dstCard.getType() != Card.Type.FEAR && dstCard.getType() != Card.Type.ZAP && destination != LOC_HERO);
                         //TODO other fun stuff here
                         default:
                             return false;
@@ -556,6 +560,11 @@ public class BoardView extends View {
                         case KILLER:
                             animateCardCrack(dstCard, destination);
                             dstPosition.setCard(null);
+                            srcPosition.setCard(null);
+                            break;
+                        case FORTIFY:
+                            dstCard.setValue(dstCard.getValue() + 5);
+                            animateCardImprove(destination);
                             srcPosition.setCard(null);
                             break;
                     }

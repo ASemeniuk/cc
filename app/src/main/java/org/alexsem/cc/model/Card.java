@@ -13,7 +13,7 @@ public class Card {
     }
 
     public enum Ability {
-        SAP, LEECH, SACRIFICE, VANISH, POTIONIZE, BASH, LASH, EXCHANGE, STEAL, KILLER
+        SAP, LEECH, SACRIFICE, VANISH, POTIONIZE, BASH, LASH, EXCHANGE, STEAL, KILLER, FORTIFY
     }
 
     private static final String[] mobNames = {"", "", "CROW", "CROW", "SLIME", "SLIME", "SPIDER", "SPIDER", "GOBLIN", "TROLL", "SOULEATER"};
@@ -79,6 +79,7 @@ public class Card {
                 this.setValue(3);
                 break;
             case LEECH:
+            case FORTIFY:
                 this.setValue(5);
                 break;
             default:
