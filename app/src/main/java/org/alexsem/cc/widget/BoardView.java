@@ -357,7 +357,7 @@ public class BoardView extends View {
                         case KILLER:
                             return (dstCard.getType() == Card.Type.FEAR && destination < 10 && dstCard.isWounded() && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case FORTIFY:
-                            return (dstCard.getType() != Card.Type.FEAR && dstCard.getType() != Card.Type.ZAP && destination != LOC_HERO);
+                            return (dstCard.getType() != Card.Type.FEAR && dstCard.getType() != Card.Type.ZAP && destination != LOC_HERO  && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         //TODO other fun stuff here
                         default:
                             return false;
