@@ -136,7 +136,7 @@ public class BoardView extends View {
 
 //        Card card = Card.getSpecial(); //TODO
 //        card.setAbility(Card.Ability.FORTIFY);
-//        mRowBottom[0].setCard(card);
+//        mRowTop[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
 //        mRowTop[1].setCard(card);
@@ -357,7 +357,7 @@ public class BoardView extends View {
                         case KILLER:
                             return (dstCard.getType() == Card.Type.FEAR && destination < 10 && dstCard.isWounded() && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case FORTIFY:
-                            return (dstCard.getType() != Card.Type.FEAR && dstCard.getType() != Card.Type.ZAP && destination != LOC_HERO  && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                            return (dstCard.getType() != Card.Type.FEAR && dstCard.getType() != Card.Type.ZAP && dstCard.isActive() && destination != LOC_HERO  && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         //TODO other fun stuff here
                         default:
                             return false;
@@ -462,7 +462,7 @@ public class BoardView extends View {
                 mCoins += srcCard.getValue();
                 break;
             case ZAP:
-                if (destination == LOC_RIGHT_HAND || destination == LOC_LEFT_HAND || destination == LOC_BACKPACK) { //Pack/Equip
+                if ((destination == LOC_RIGHT_HAND || destination == LOC_LEFT_HAND || destination == LOC_BACKPACK) && source != LOC_LEFT_HAND && source != LOC_RIGHT_HAND) { //Pack/Equip
                     dstPosition.setCard(srcCard);
                     srcPosition.setCard(null);
                 } else { //Actually use
