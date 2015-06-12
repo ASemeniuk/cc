@@ -1,9 +1,5 @@
 package org.alexsem.cc.model;
 
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.RectF;
-
 public class Card {
 
     public static final int HERO_MAX = 13;
