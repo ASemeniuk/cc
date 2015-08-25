@@ -62,6 +62,7 @@ public class BoardView extends View {
     private Position[] mRowBottom = new Position[4];
     private int mCoins;
     private boolean isFreshDeal;
+    private boolean isNeedToReviveHero;
     private RectF mDeckPosition;
 
     private int mDealAnimationCount = 0;
@@ -126,6 +127,7 @@ public class BoardView extends View {
         mReceiveAnimationCount = 0;
         mDropAnimationCount = 0;
         mCardAnimationCount = 0;
+        isNeedToReviveHero = false;
         isHeroAnimated = false;
         isDragging = false;
         isDiscarding = false;
@@ -135,7 +137,7 @@ public class BoardView extends View {
 
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.BASH);
+//        card.setAbility(Card.Ability.FRENZY);
 //        mRowTop[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
@@ -358,6 +360,12 @@ public class BoardView extends View {
                             return (dstCard.getType() == Card.Type.FEAR && destination < 10 && dstCard.isWounded() && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case FORTIFY:
                             return (dstCard.getType() != Card.Type.FEAR && dstCard.getType() != Card.Type.ZAP && dstCard.isActive() && destination != LOC_HERO  && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                        case REVIVE:
+                            return (dstCard.getType() == Card.Type.FLEX && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                        case FRENZY:
+                            return (destination < 10 && dstCard.getType() == Card.Type.FEAR &&
+                                    ((source == LOC_LEFT_HAND && mRowBottom[2].getCard() != null && mRowBottom[2].getCard().getType() == Card.Type.HIT) ||
+                                            (source == LOC_RIGHT_HAND && mRowBottom[0].getCard() != null && mRowBottom[0].getCard().getType() == Card.Type.HIT)));
                         //TODO other fun stuff here
                         default:
                             return false;
@@ -572,6 +580,25 @@ public class BoardView extends View {
                             animateCardImprove(destination);
                             srcPosition.setCard(null);
                             break;
+                        case REVIVE:
+                            srcPosition.setCard(null);
+                            isNeedToReviveHero = true;
+                            animateCardImprove(LOC_HERO);
+                        break;
+                        case FRENZY:
+                            Position swordPosition = mRowBottom[source == LOC_LEFT_HAND ? 2 : 0];
+                            if (dstCard.getValue() > swordPosition.getCard().getValue()) { //Mob can take damage (and more)
+                                dstCard.setValue(dstCard.getValue() - swordPosition.getCard().getValue());
+                                animateCardSuffer(destination);
+                                dstCard.setWounded(true);
+                            } else { //Mob will be defeated
+                                animateCardCrack(dstCard, destination);
+                                dstPosition.setCard(null);
+                            }
+                            animateCardImprove(source == LOC_LEFT_HAND ? LOC_RIGHT_HAND : LOC_LEFT_HAND);
+                            srcPosition.setCard(null);
+                            break;
+
                     }
                     //TODO other funny stuff here
                 }
@@ -614,8 +641,14 @@ public class BoardView extends View {
         isFreshDeal = false;
         Card hero = mRowBottom[1].getCard();
         if (hero.getValue() <= 0) { //Check hero health
-            animateHeroVanish();
-            return;
+            if (isNeedToReviveHero) { //Can be revived
+                hero.setValue(1);
+                animateCardImprove(LOC_HERO);
+                isNeedToReviveHero = false;
+            } else { //Actual death
+                animateHeroVanish();
+                return;
+            }
         }
         if (mDeck.size() == 0) { //Check deck size
             boolean win = true;
