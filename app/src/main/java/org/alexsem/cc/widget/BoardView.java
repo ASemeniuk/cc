@@ -135,7 +135,7 @@ public class BoardView extends View {
 
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.FORTIFY);
+//        card.setAbility(Card.Ability.BASH);
 //        mRowTop[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
@@ -522,8 +522,13 @@ public class BoardView extends View {
                                 animateCardCrack(dstCard, destination);
                                 dstPosition.setCard(null);
                             }
-                            animateCardCrack(shieldPosition.getCard(), source == LOC_LEFT_HAND ? LOC_RIGHT_HAND : LOC_LEFT_HAND);
-                            shieldPosition.setCard(null);
+                            if (shieldPosition.getCard().getValue() > 5) { //Shield can take bash damage
+                                shieldPosition.getCard().setValue(shieldPosition.getCard().getValue() - 5);
+                                animateCardSuffer(source == LOC_LEFT_HAND ? LOC_RIGHT_HAND : LOC_LEFT_HAND);
+                            } else { //Shield is too weak
+                                animateCardCrack(shieldPosition.getCard(), source == LOC_LEFT_HAND ? LOC_RIGHT_HAND : LOC_LEFT_HAND);
+                                srcPosition.setCard(null);
+                            }
                             srcPosition.setCard(null);
                             break;
                         case LASH:

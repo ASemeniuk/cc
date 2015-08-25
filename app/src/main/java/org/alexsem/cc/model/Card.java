@@ -71,10 +71,10 @@ public class Card {
         this.ability = ability;
         this.setName(this.getAbility().name().toUpperCase());
         switch (this.getAbility()) {
+            case LEECH:
             case LASH:
                 this.setValue(3);
                 break;
-            case LEECH:
             case FORTIFY:
                 this.setValue(5);
                 break;
