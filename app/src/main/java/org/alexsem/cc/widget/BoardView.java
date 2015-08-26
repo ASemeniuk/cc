@@ -63,6 +63,7 @@ public class BoardView extends View {
     private int mCoins;
     private boolean isFreshDeal;
     private boolean isNeedToReviveHero;
+    private boolean isNeedToReflectDamage;
     private RectF mDeckPosition;
 
     private int mDealAnimationCount = 0;
@@ -127,6 +128,7 @@ public class BoardView extends View {
         mReceiveAnimationCount = 0;
         mDropAnimationCount = 0;
         mCardAnimationCount = 0;
+        isNeedToReflectDamage = false;
         isNeedToReviveHero = false;
         isHeroAnimated = false;
         isDragging = false;
@@ -137,7 +139,7 @@ public class BoardView extends View {
 
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.FRENZY);
+//        card.setAbility(Card.Ability.REFLECT);
 //        mRowTop[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
@@ -359,7 +361,8 @@ public class BoardView extends View {
                         case KILLER:
                             return (dstCard.getType() == Card.Type.FEAR && destination < 10 && dstCard.isWounded() && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case FORTIFY:
-                            return (dstCard.getType() != Card.Type.FEAR && dstCard.getType() != Card.Type.ZAP && dstCard.isActive() && destination != LOC_HERO  && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                            return (dstCard.getType() != Card.Type.FEAR && dstCard.getType() != Card.Type.ZAP && dstCard.isActive() && destination != LOC_HERO && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                        case REFLECT:
                         case REVIVE:
                             return (dstCard.getType() == Card.Type.FLEX && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case FRENZY:
@@ -414,9 +417,31 @@ public class BoardView extends View {
         switch (srcCard.getType()) {
             case FEAR:
                 if (dstCard != null && dstCard.getType() == Card.Type.FLEX) { //Endure attack
-                    dstCard.setValue(Math.max(0, dstCard.getValue() - srcCard.getValue()));
-                    animateCardSuffer(LOC_HERO);
-                    srcPosition.setCard(null);
+                    if (isNeedToReflectDamage) { //Damage reflected
+                        int randomTarget;
+                        Card randomCard;
+                        do {
+                            randomTarget = (int) (Math.random() * 4);
+                            randomCard = mRowTop[(randomTarget)].getCard();
+                        } while (randomCard == null || randomCard.getType() == Card.Type.ZAP);
+                        if (randomCard.getValue() > srcCard.getValue()) { //Target card can take damage
+                            randomCard.setValue(randomCard.getValue() - srcCard.getValue());
+                            animateCardSuffer(randomTarget);
+                            randomCard.setWounded(true);
+                        } else { //Card is too weak
+                            animateCardCrack(randomCard, randomTarget);
+                            mRowTop[randomTarget].setCard(null);
+                        }
+                        float distance = (float) Math.sqrt(mDragRelX * mDragRelX + mDragRelY * mDragRelY);
+                        mDragReturnTicks = (int) (distance / mDragReturnSpeed);
+                        mDragSpeedX = mDragRelX / mDragReturnTicks;
+                        mDragSpeedY = mDragRelY / mDragReturnTicks;
+                        isNeedToReflectDamage = false;
+                    } else { //Damage taken
+                        dstCard.setValue(Math.max(0, dstCard.getValue() - srcCard.getValue()));
+                        animateCardSuffer(LOC_HERO);
+                        srcPosition.setCard(null);
+                    }
                 } else if (dstCard != null && dstCard.getType() == Card.Type.BLOCK) { //Block attack
                     if (dstCard.getValue() > srcCard.getValue()) { //Shield can take damage (and more)
                         dstCard.setValue(dstCard.getValue() - srcCard.getValue());
@@ -582,11 +607,16 @@ public class BoardView extends View {
                             animateCardImprove(destination);
                             srcPosition.setCard(null);
                             break;
+                        case REFLECT:
+                            srcPosition.setCard(null);
+                            isNeedToReflectDamage = true;
+                            animateCardImprove(LOC_HERO);
+                            break;
                         case REVIVE:
                             srcPosition.setCard(null);
                             isNeedToReviveHero = true;
                             animateCardImprove(LOC_HERO);
-                        break;
+                            break;
                         case FRENZY:
                             Position swordPosition = mRowBottom[source == LOC_LEFT_HAND ? 2 : 0];
                             if (dstCard.getValue() > swordPosition.getCard().getValue()) { //Mob can take damage (and more)
@@ -805,7 +835,7 @@ public class BoardView extends View {
                     text = String.valueOf(mCoins);
                     canvas.drawText(text, rect.left + mFontPadding, rect.bottom - mFontSize - mFontPadding - mTextPaint.ascent(), mTextPaint);
                     mTextPaint.setColor(COLOR_SPECIAL);
-                    text= isNeedToReviveHero ? "\u2661" : ""; //\u2665 \u263c
+                    text = String.format("%s%s", isNeedToReflectDamage ? "\u263c" : "", isNeedToReviveHero ? "\u2661" : ""); //\u2665
                     canvas.drawText(text, rect.right - mFontPadding - mTextPaint.measureText(text), rect.bottom - mFontSize - mFontPadding - mTextPaint.ascent(), mTextPaint);
                     break;
                 case FEAR:

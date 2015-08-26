@@ -9,7 +9,7 @@ public class Card {
     }
 
     public enum Ability {
-        SAP, LEECH, SACRIFICE, VANISH, POTIONIZE, BASH, LASH, EXCHANGE, STEAL, KILLER, FORTIFY, REVIVE, FRENZY
+        SAP, LEECH, SACRIFICE, VANISH, POTIONIZE, BASH, LASH, EXCHANGE, STEAL, KILLER, FORTIFY, REVIVE, FRENZY, REFLECT
     }
 
     private static final String[] mobNames = {"", "", "PLAGUE", "CROW", "FIRELAMB", "SLIME", "INCUBUS", "GOBLIN", "SPIDER", "TROLL", "SOULEATER"};
