@@ -540,9 +540,10 @@ public class BoardView extends View {
                             srcPosition.setCard(null);
                             break;
                         case LASH:
-                            for (int i = 0; i < 4; i++) {
+                            int lashedCount = 0;
+                            for (int i = 0; i < 4 && lashedCount < 3; i++) {
                                 Card card = mRowTop[i].getCard();
-                                if (card != null && (card.getType() != Card.Type.ZAP)) {
+                                if (card != null && (card.getType() == Card.Type.FEAR)) {
                                     if (card.getValue() > srcCard.getValue()) { //Card can take damage (and more)
                                         card.setValue(card.getValue() - srcCard.getValue());
                                         animateCardSuffer(i);
@@ -551,6 +552,7 @@ public class BoardView extends View {
                                         animateCardCrack(mRowTop[i].getCard(), i);
                                         mRowTop[i].setCard(null);
                                     }
+                                    lashedCount++;
                                 }
                             }
                             srcPosition.setCard(null);
