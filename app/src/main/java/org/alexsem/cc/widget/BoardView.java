@@ -138,9 +138,9 @@ public class BoardView extends View {
         invalidate();
 
 
-        Card card = Card.getSpecial(); //TODO
-        card.setAbility(Card.Ability.LUCKY);
-        mRowTop[0].setCard(card);
+//        Card card = Card.getSpecial(); //TODO
+//        card.setAbility(Card.Ability.TRADE);
+//        mRowTop[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
 //        mRowTop[1].setCard(card);
@@ -349,7 +349,7 @@ public class BoardView extends View {
                         case VANISH:
                             return (dstCard.getType() == Card.Type.FLEX && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case POTIONIZE:
-                            return ((dstCard.getType() == Card.Type.CASH || dstCard.getType() == Card.Type.HIT || dstCard.getType() == Card.Type.BLOCK) && destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND)); //TODO coins also?
+                            return ((dstCard.getType() == Card.Type.CASH || dstCard.getType() == Card.Type.HIT || dstCard.getType() == Card.Type.BLOCK) && (destination < 10 || destination == LOC_BACKPACK) && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case BASH:
                             return (destination < 10 && dstCard.getType() == Card.Type.FEAR &&
                                     ((source == LOC_LEFT_HAND && mRowBottom[2].getCard() != null && mRowBottom[2].getCard().getType() == Card.Type.BLOCK) ||
@@ -370,6 +370,8 @@ public class BoardView extends View {
                             return (destination < 10 && dstCard.getType() == Card.Type.FEAR &&
                                     ((source == LOC_LEFT_HAND && mRowBottom[2].getCard() != null && mRowBottom[2].getCard().getType() == Card.Type.HIT) ||
                                             (source == LOC_RIGHT_HAND && mRowBottom[0].getCard() != null && mRowBottom[0].getCard().getType() == Card.Type.HIT)));
+                        case TRADE:
+                            return ((dstCard.getType() == Card.Type.CASH || dstCard.getType() == Card.Type.DRINK || dstCard.getType() == Card.Type.HIT || dstCard.getType() == Card.Type.BLOCK) && (destination < 10 || destination == LOC_BACKPACK) && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         //TODO other fun stuff here
                         default:
                             return false;
@@ -642,7 +644,7 @@ public class BoardView extends View {
                                 animateCardCrack(randomCard, randomTarget);
                                 mRowTop[randomTarget].setCard(null);
                                 boolean cardsLeft = false;
-                                for (Position p: mRowTop) {
+                                for (Position p : mRowTop) {
                                     if (p.getCard() != null) {
                                         cardsLeft = true;
                                         break;
@@ -652,6 +654,13 @@ public class BoardView extends View {
                                     break;
                                 }
                             }
+                            srcPosition.setCard(null);
+                            break;
+                        case TRADE:
+                            mCoins += 10;
+                            mDragRelX = 0;
+                            mDragRelY = 0;
+                            animateCardDiscard(destination);
                             srcPosition.setCard(null);
                             break;
                     }
@@ -673,6 +682,7 @@ public class BoardView extends View {
         switch (card.getType()) {
             case ZAP:
                 animateCardDiscard(location);
+                break;
             case HIT:
             case BLOCK:
             case DRINK:
