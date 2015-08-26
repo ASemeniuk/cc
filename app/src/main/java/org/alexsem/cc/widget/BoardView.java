@@ -138,9 +138,9 @@ public class BoardView extends View {
         invalidate();
 
 
-//        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.REFLECT);
-//        mRowTop[0].setCard(card);
+        Card card = Card.getSpecial(); //TODO
+        card.setAbility(Card.Ability.LUCKY);
+        mRowTop[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
 //        mRowTop[1].setCard(card);
@@ -364,6 +364,7 @@ public class BoardView extends View {
                             return (dstCard.getType() != Card.Type.FEAR && dstCard.getType() != Card.Type.ZAP && dstCard.isActive() && destination != LOC_HERO && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case REFLECT:
                         case REVIVE:
+                        case LUCKY:
                             return (dstCard.getType() == Card.Type.FLEX && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case FRENZY:
                             return (destination < 10 && dstCard.getType() == Card.Type.FEAR &&
@@ -608,14 +609,14 @@ public class BoardView extends View {
                             srcPosition.setCard(null);
                             break;
                         case REFLECT:
-                            srcPosition.setCard(null);
                             isNeedToReflectDamage = true;
                             animateCardImprove(LOC_HERO);
+                            srcPosition.setCard(null);
                             break;
                         case REVIVE:
-                            srcPosition.setCard(null);
                             isNeedToReviveHero = true;
                             animateCardImprove(LOC_HERO);
+                            srcPosition.setCard(null);
                             break;
                         case FRENZY:
                             Position swordPosition = mRowBottom[source == LOC_LEFT_HAND ? 2 : 0];
@@ -630,7 +631,29 @@ public class BoardView extends View {
                             animateCardImprove(source == LOC_LEFT_HAND ? LOC_RIGHT_HAND : LOC_LEFT_HAND);
                             srcPosition.setCard(null);
                             break;
-
+                        case LUCKY:
+                            for (int i = 0; i < srcCard.getValue(); i++) {
+                                int randomTarget;
+                                Card randomCard;
+                                do {
+                                    randomTarget = (int) (Math.random() * 4);
+                                    randomCard = mRowTop[(randomTarget)].getCard();
+                                } while (randomCard == null);
+                                animateCardCrack(randomCard, randomTarget);
+                                mRowTop[randomTarget].setCard(null);
+                                boolean cardsLeft = false;
+                                for (Position p: mRowTop) {
+                                    if (p.getCard() != null) {
+                                        cardsLeft = true;
+                                        break;
+                                    }
+                                }
+                                if (!cardsLeft) { //No more cards left
+                                    break;
+                                }
+                            }
+                            srcPosition.setCard(null);
+                            break;
                     }
                     //TODO other funny stuff here
                 }
