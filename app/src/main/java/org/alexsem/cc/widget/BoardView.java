@@ -804,6 +804,9 @@ public class BoardView extends View {
                     canvas.drawText(text, rect.right - mFontPadding - mTextPaint.measureText(text), rect.top + mFontPadding - mTextPaint.ascent(), mTextPaint);
                     text = String.valueOf(mCoins);
                     canvas.drawText(text, rect.left + mFontPadding, rect.bottom - mFontSize - mFontPadding - mTextPaint.ascent(), mTextPaint);
+                    mTextPaint.setColor(COLOR_SPECIAL);
+                    text= isNeedToReviveHero ? "\u2661" : ""; //\u2665 \u263c
+                    canvas.drawText(text, rect.right - mFontPadding - mTextPaint.measureText(text), rect.bottom - mFontSize - mFontPadding - mTextPaint.ascent(), mTextPaint);
                     break;
                 case FEAR:
                     mPaint.setColor(COLOR_REGULAR);
