@@ -12,7 +12,7 @@ public class Card {
         SAP, LEECH, SACRIFICE, VANISH, POTIONIZE, BASH, LASH, EXCHANGE, STEAL, KILLER, FORTIFY, REVIVE, FRENZY
     }
 
-    private static final String[] mobNames = {"", "", "CROW", "CROW", "SLIME", "SLIME", "SPIDER", "SPIDER", "GOBLIN", "TROLL", "SOULEATER"};
+    private static final String[] mobNames = {"", "", "PLAGUE", "CROW", "FIRELAMB", "SLIME", "INCUBUS", "GOBLIN", "SPIDER", "TROLL", "SOULEATER"};
     private static final Type[] types = Type.values();
     private static final Ability[] abilities = Ability.values();
 
