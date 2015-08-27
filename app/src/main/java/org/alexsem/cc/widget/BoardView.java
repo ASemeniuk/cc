@@ -563,7 +563,7 @@ public class BoardView extends View {
                                 animateCardSuffer(source == LOC_LEFT_HAND ? LOC_RIGHT_HAND : LOC_LEFT_HAND);
                             } else { //Shield is too weak
                                 animateCardCrack(shieldPosition.getCard(), source == LOC_LEFT_HAND ? LOC_RIGHT_HAND : LOC_LEFT_HAND);
-                                srcPosition.setCard(null);
+                                shieldPosition.setCard(null);
                             }
                             srcPosition.setCard(null);
                             break;
@@ -634,7 +634,7 @@ public class BoardView extends View {
                             srcPosition.setCard(null);
                             break;
                         case LUCKY:
-                            for (int i = 0; i < srcCard.getValue(); i++) {
+                            for (int i = 0; i < 2; i++) {
                                 int randomTarget;
                                 Card randomCard;
                                 do {
@@ -660,6 +660,7 @@ public class BoardView extends View {
                             mCoins += 10;
                             mDragRelX = 0;
                             mDragRelY = 0;
+                            mTouchedLocation = destination;
                             animateCardDiscard(destination);
                             srcPosition.setCard(null);
                             break;
