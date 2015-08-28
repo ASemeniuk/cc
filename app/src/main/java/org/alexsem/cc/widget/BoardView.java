@@ -61,6 +61,7 @@ public class BoardView extends View {
     private Position[] mRowTop = new Position[4];
     private Position[] mRowBottom = new Position[4];
     private int mCoins;
+    private int mHealthAddition;
     private boolean isFreshDeal;
     private boolean isNeedToReviveHero;
     private boolean isNeedToReflectDamage;
@@ -124,6 +125,7 @@ public class BoardView extends View {
         mDiscardAnimation = null;
         mDiscardBox = new Box();
         mCoins = 0;
+        mHealthAddition = 0;
         mDealAnimationCount = 0;
         mReceiveAnimationCount = 0;
         mDropAnimationCount = 0;
@@ -139,7 +141,7 @@ public class BoardView extends View {
 
 
         Card card = Card.getSpecial(); //TODO
-        card.setAbility(Card.Ability.POTIONIZE);
+        card.setAbility(Card.Ability.LIFE);
         mRowTop[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
@@ -365,6 +367,7 @@ public class BoardView extends View {
                         case REFLECT:
                         case REVIVE:
                         case LUCKY:
+                        case LIFE:
                             return (dstCard.getType() == Card.Type.FLEX && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case FRENZY:
                             return (destination < 10 && dstCard.getType() == Card.Type.FEAR &&
@@ -487,7 +490,7 @@ public class BoardView extends View {
                 srcPosition.setCard(null);
                 if (destination == LOC_LEFT_HAND || destination == LOC_RIGHT_HAND) { //Actually use
                     srcCard.setActive(false);
-                    hero.setValue(Math.min(Card.HERO_MAX, hero.getValue() + srcCard.getValue()));
+                    hero.setValue(Math.min(Card.HERO_MAX + mHealthAddition, hero.getValue() + srcCard.getValue()));
                     animateCardImprove(LOC_HERO);
                 }
                 break;
@@ -519,11 +522,11 @@ public class BoardView extends View {
                                 dstPosition.setCard(null);
                             }
                             srcPosition.setCard(null);
-                            hero.setValue(Math.min(Card.HERO_MAX, hero.getValue() + leeched));
+                            hero.setValue(Math.min(Card.HERO_MAX + mHealthAddition, hero.getValue() + leeched));
                             animateCardImprove(LOC_HERO);
                             break;
                         case SACRIFICE:
-                            int sacrificed = Card.HERO_MAX - hero.getValue();
+                            int sacrificed = Card.HERO_MAX + mHealthAddition - hero.getValue();
                             if (dstCard.getValue() > sacrificed) { //Mob can take damage (and more)
                                 dstCard.setValue(dstCard.getValue() - sacrificed);
                                 animateCardSuffer(destination);
@@ -663,6 +666,12 @@ public class BoardView extends View {
                             mDragRelY = 0;
                             mTouchedLocation = destination;
                             animateCardDiscard(destination);
+                            srcPosition.setCard(null);
+                            break;
+                        case LIFE:
+                            hero.setValue(hero.getValue() + srcCard.getValue());
+                            mHealthAddition = Math.max(0, hero.getValue() - Card.HERO_MAX);
+                            animateCardImprove(LOC_HERO);
                             srcPosition.setCard(null);
                             break;
                     }
@@ -865,7 +874,7 @@ public class BoardView extends View {
                     canvas.drawCircle(cx - radius * 2 / 3, cy - radius / 2, radius / 4, mPaint);
                     canvas.drawCircle(cx + radius * 2 / 3, cy - radius / 2, radius / 4, mPaint);
                     mTextPaint.setColor(COLOR_EMPH);
-                    text = String.format("%d/%d", value, Card.HERO_MAX);
+                    text = String.format("%d/%d", value, Card.HERO_MAX + mHealthAddition);
                     canvas.drawText(text, rect.right - mFontPadding - mTextPaint.measureText(text), rect.top + mFontPadding - mTextPaint.ascent(), mTextPaint);
                     text = String.valueOf(mCoins);
                     canvas.drawText(text, rect.left + mFontPadding, rect.bottom - mFontSize - mFontPadding - mTextPaint.ascent(), mTextPaint);

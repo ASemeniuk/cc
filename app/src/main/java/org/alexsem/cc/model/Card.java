@@ -10,7 +10,7 @@ public class Card {
 
     public enum Ability {
         SAP, VANISH, LEECH, SACRIFICE, POTIONIZE, KILLER, EXCHANGE, STEAL, LASH, BASH, REFLECT,/* BETRAYAL,*/ REVIVE, FRENZY, LUCKY,
-        TRADE, /*SWAP, MORPH,*/ FORTIFY,/*MIDAS, DEVOUR, TRAP, LIFE, BLEED, SUICIDE, BLOODPACT, BOUNTY, EQUALIZE, DIGGER, MIRROR*/
+        TRADE, /*SWAP, MORPH,*/ FORTIFY,/*MIDAS, DEVOUR, TRAP,*/ LIFE,/* BLEED, SUICIDE, BLOODPACT, BOUNTY, EQUALIZE, DIGGER, MIRROR*/
     }
 
     private static final String[] mobNames = {"", "", "PLAGUE", "CROW", "FIRELAMB", "SLIME", "INCUBUS", "GOBLIN", "SPIDER", "TROLL", "SOULEATER"};
@@ -77,6 +77,7 @@ public class Card {
                 this.setValue(3);
                 break;
             case FORTIFY:
+            case LIFE:
                 this.setValue(5);
                 break;
             default:
