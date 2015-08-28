@@ -138,9 +138,9 @@ public class BoardView extends View {
         invalidate();
 
 
-//        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.TRADE);
-//        mRowTop[0].setCard(card);
+        Card card = Card.getSpecial(); //TODO
+        card.setAbility(Card.Ability.TRADE);
+        mRowTop[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
 //        mRowTop[1].setCard(card);
@@ -371,7 +371,7 @@ public class BoardView extends View {
                                     ((source == LOC_LEFT_HAND && mRowBottom[2].getCard() != null && mRowBottom[2].getCard().getType() == Card.Type.HIT) ||
                                             (source == LOC_RIGHT_HAND && mRowBottom[0].getCard() != null && mRowBottom[0].getCard().getType() == Card.Type.HIT)));
                         case TRADE:
-                            return ((dstCard.getType() == Card.Type.CASH || dstCard.getType() == Card.Type.DRINK || dstCard.getType() == Card.Type.HIT || dstCard.getType() == Card.Type.BLOCK) && (destination < 10 || destination == LOC_BACKPACK) && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                            return ((dstCard.getType() != Card.Type.FEAR && dstCard.getType() != Card.Type.FLEX) && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         //TODO other fun stuff here
                         default:
                             return false;
