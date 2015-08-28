@@ -139,7 +139,7 @@ public class BoardView extends View {
 
 
         Card card = Card.getSpecial(); //TODO
-        card.setAbility(Card.Ability.TRADE);
+        card.setAbility(Card.Ability.POTIONIZE);
         mRowTop[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
@@ -349,7 +349,7 @@ public class BoardView extends View {
                         case VANISH:
                             return (dstCard.getType() == Card.Type.FLEX && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case POTIONIZE:
-                            return ((dstCard.getType() == Card.Type.CASH || dstCard.getType() == Card.Type.HIT || dstCard.getType() == Card.Type.BLOCK) && (destination < 10 || destination == LOC_BACKPACK) && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                            return ((dstCard.getType() == Card.Type.CASH || dstCard.getType() == Card.Type.DRINK || dstCard.getType() == Card.Type.HIT || dstCard.getType() == Card.Type.BLOCK) && (destination < 10 || destination == LOC_BACKPACK) && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case BASH:
                             return (destination < 10 && dstCard.getType() == Card.Type.FEAR &&
                                     ((source == LOC_LEFT_HAND && mRowBottom[2].getCard() != null && mRowBottom[2].getCard().getType() == Card.Type.BLOCK) ||
@@ -536,6 +536,7 @@ public class BoardView extends View {
                             break;
                         case POTIONIZE:
                             dstCard.setType(Card.Type.DRINK);
+                            dstCard.setValue((int) Math.random() * 9 + 2);
                             animateCardImprove(destination);
                             srcPosition.setCard(null);
                             break;
