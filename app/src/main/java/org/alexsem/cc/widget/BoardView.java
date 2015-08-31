@@ -140,9 +140,9 @@ public class BoardView extends View {
         invalidate();
 
 
-        Card card = Card.getSpecial(); //TODO
-        card.setAbility(Card.Ability.LIFE);
-        mRowTop[0].setCard(card);
+//        Card card = Card.getSpecial(); //TODO
+//        card.setAbility(Card.Ability.LASH);
+//        mRowTop[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
 //        mRowTop[1].setCard(card);
@@ -539,7 +539,7 @@ public class BoardView extends View {
                             break;
                         case POTIONIZE:
                             dstCard.setType(Card.Type.DRINK);
-                            dstCard.setValue((int) Math.random() * 9 + 2);
+                            dstCard.setValue((int) (Math.random() * 9 + 2));
                             animateCardImprove(destination);
                             srcPosition.setCard(null);
                             break;
@@ -572,19 +572,27 @@ public class BoardView extends View {
                             srcPosition.setCard(null);
                             break;
                         case LASH:
+                            boolean leftToRight = (Math.random() < 0.5f);
                             int lashedCount = 0;
-                            for (int i = 0; i < 4 && lashedCount < 3; i++) {
-                                Card card = mRowTop[i].getCard();
+                            int lashIndex = leftToRight ? 0 : 3;
+                            while (lashedCount < 3) {
+                                Card card = mRowTop[lashIndex].getCard();
                                 if (card != null && (card.getType() == Card.Type.FEAR)) {
                                     if (card.getValue() > srcCard.getValue()) { //Card can take damage (and more)
                                         card.setValue(card.getValue() - srcCard.getValue());
-                                        animateCardSuffer(i);
+                                        animateCardSuffer(lashIndex);
                                         card.setWounded(true);
                                     } else { //Card will be defeated
-                                        animateCardCrack(mRowTop[i].getCard(), i);
-                                        mRowTop[i].setCard(null);
+                                        animateCardCrack(mRowTop[lashIndex].getCard(), lashIndex);
+                                        mRowTop[lashIndex].setCard(null);
                                     }
                                     lashedCount++;
+                                } else if (lashedCount > 0) {
+                                    break;
+                                }
+                                lashIndex += (leftToRight ? 1 : -1);
+                                if (lashIndex < 0 || lashIndex > 3) {
+                                    break;
                                 }
                             }
                             srcPosition.setCard(null);
@@ -879,7 +887,7 @@ public class BoardView extends View {
                     text = String.valueOf(mCoins);
                     canvas.drawText(text, rect.left + mFontPadding, rect.bottom - mFontSize - mFontPadding - mTextPaint.ascent(), mTextPaint);
                     mTextPaint.setColor(COLOR_SPECIAL);
-                    text = String.format("%s%s", isNeedToReflectDamage ? "\u263c" : "", isNeedToReviveHero ? "\u2661" : ""); //\u2665
+                    text = String.format("%s%s", isNeedToReflectDamage ? "\u2600" : "", isNeedToReviveHero ? "\u2665" : "");
                     canvas.drawText(text, rect.right - mFontPadding - mTextPaint.measureText(text), rect.bottom - mFontSize - mFontPadding - mTextPaint.ascent(), mTextPaint);
                     break;
                 case FEAR:
