@@ -141,7 +141,7 @@ public class BoardView extends View {
 
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.EXCHANGE);
+//        card.setAbility(Card.Ability.TRAP);
 //        mRowTop[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
@@ -370,9 +370,11 @@ public class BoardView extends View {
                                     ((source == LOC_LEFT_HAND && mRowBottom[2].getCard() != null && mRowBottom[2].getCard().getType() == Card.Type.HIT) ||
                                             (source == LOC_RIGHT_HAND && mRowBottom[0].getCard() != null && mRowBottom[0].getCard().getType() == Card.Type.HIT)));
                         case TRADE:
-                            return ((dstCard.getType() != Card.Type.FEAR && dstCard.getType() != Card.Type.FLEX) && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                            return (dstCard.getType() != Card.Type.FEAR && dstCard.getType() != Card.Type.FLEX && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case MIDAS:
-                            return ((dstCard.getType() != Card.Type.FLEX && dstCard.getValue() > 0) && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                            return (dstCard.getType() != Card.Type.FLEX && dstCard.getValue() > 0 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                        case TRAP:
+                            return (destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         //TODO other fun stuff here
                         default:
                             return false;
@@ -721,6 +723,10 @@ public class BoardView extends View {
                             }
                             srcPosition.setCard(null);
                             break;
+                        case TRAP:
+                            dstCard.setActive(false);
+                            srcPosition.setCard(null);
+                            break;
                     }
                     //TODO other funny stuff here
                 }
@@ -776,7 +782,7 @@ public class BoardView extends View {
         if (mDeck.size() == 0) { //Check deck size
             boolean win = true;
             for (int i = 0; i < 4; i++) {
-                if (mRowTop[i].getCard() != null) {
+                if (mRowTop[i].getCard() != null && mRowTop[i].getCard().isActive()) {
                     win = false;
                     break;
                 }
@@ -789,7 +795,7 @@ public class BoardView extends View {
 
         int emptyTop = 0;
         for (int i = 0; i < 4; i++) {
-            if (mRowTop[i] != null && mRowTop[i].getCard() == null) {
+            if (mRowTop[i] != null && (mRowTop[i].getCard() == null || !mRowTop[i].getCard().isActive())) {
                 emptyTop++;
                 if (emptyTop >= 3) {
                     dealTopRow();
