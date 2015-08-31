@@ -140,9 +140,9 @@ public class BoardView extends View {
         invalidate();
 
 
-//        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.LASH);
-//        mRowTop[0].setCard(card);
+        Card card = Card.getSpecial(); //TODO
+        card.setAbility(Card.Ability.BETRAYAL);
+        mRowTop[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
 //        mRowTop[1].setCard(card);
@@ -369,6 +369,8 @@ public class BoardView extends View {
                         case LUCKY:
                         case LIFE:
                             return (dstCard.getType() == Card.Type.FLEX && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                        case BETRAYAL:
+                            return (dstCard.getType() == Card.Type.FEAR && destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case FRENZY:
                             return (destination < 10 && dstCard.getType() == Card.Type.FEAR &&
                                     ((source == LOC_LEFT_HAND && mRowBottom[2].getCard() != null && mRowBottom[2].getCard().getType() == Card.Type.HIT) ||
@@ -680,6 +682,22 @@ public class BoardView extends View {
                             hero.setValue(hero.getValue() + srcCard.getValue());
                             mHealthAddition = Math.max(0, hero.getValue() - Card.HERO_MAX);
                             animateCardImprove(LOC_HERO);
+                            srcPosition.setCard(null);
+                            break;
+                        case BETRAYAL:
+                            for (int i = 0; i < 4; i++) {
+                                Card card = mRowTop[i].getCard();
+                                if (Math.abs(i - destination) == 1 && card != null && (card.getType() != Card.Type.ZAP)) {
+                                    if (card.getValue() > dstCard.getValue()) { //Card can take damage (and more)
+                                        card.setValue(card.getValue() - dstCard.getValue());
+                                        animateCardSuffer(i);
+                                        card.setWounded(true);
+                                    } else { //Card will be defeated
+                                        animateCardCrack(mRowTop[i].getCard(), i);
+                                        mRowTop[i].setCard(null);
+                                    }
+                                }
+                            }
                             srcPosition.setCard(null);
                             break;
                     }
