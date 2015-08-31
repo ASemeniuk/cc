@@ -108,6 +108,20 @@ public class Deck {
     }
 
     /**
+     * Remove card from the specified position in the deck (if possible)
+     * @param position Position of card to deal
+     * @return Requested card or null if no cards in the deck
+     */
+    public Card deal(int position) {
+        if (cards == null || position < 0 || position > cards.size() - 1) {
+            return null;
+        }
+        Card card = cards.get(position);
+        cards.remove(card);
+        return card;
+    }
+
+    /**
      * Return card to the bottom of the deck
      * @param card Card to add to the deck
      */
@@ -115,6 +129,20 @@ public class Deck {
         if (cards != null) {
             cards.add(0, card);
         }
+    }
+
+    /**
+     * Find card of specified type (from top down to bottom)
+     * @param type Type of card to file
+     * @return position of card or -1
+     */
+    public int find(Card.Type type) {
+        for (int i = cards.size() - 1; i > -1; i--) {
+            if (cards.get(i).getType() == type) {
+                return i;
+            }
+        }
+        return -1;
     }
 
 }

@@ -141,7 +141,7 @@ public class BoardView extends View {
 
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.MIDAS);
+//        card.setAbility(Card.Ability.EXCHANGE);
 //        mRowTop[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
@@ -603,7 +603,10 @@ public class BoardView extends View {
                         case EXCHANGE:
                             animateReceiveCard(dstCard, destination);
                             dstPosition.setCard(null);
-                            animateDealCard(mDeck.deal(), destination);
+                            Card exchangedCard = mDeck.deal(mDeck.find(Card.Type.ZAP));
+                            if (exchangedCard != null) {
+                                animateDealCard(exchangedCard, destination);
+                            }
                             srcPosition.setCard(null);
                             break;
                         case STEAL:
