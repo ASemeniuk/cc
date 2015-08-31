@@ -105,7 +105,7 @@ public class BoardView extends View {
         mTextPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
         int dpi = context.getResources().getDisplayMetrics().densityDpi;
         STROKE_WIDTH = STROKE_WIDTH * dpi / 160f;
-        begin(); //TODO start
+        begin(); //Start
     }
 
     public void begin() {
@@ -140,18 +140,12 @@ public class BoardView extends View {
         invalidate();
 
 
-        Card card = Card.getSpecial(); //TODO
-        card.setAbility(Card.Ability.BETRAYAL);
-        mRowTop[0].setCard(card);
+//        Card card = Card.getSpecial(); //TODO
+//        card.setAbility(Card.Ability.MIDAS);
+//        mRowTop[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
 //        mRowTop[1].setCard(card);
-//
-//        for (int i = 0; i < 48; i++) { //TODO
-//            mDeck.deal();
-//        }
-
-
     }
 
     /**
@@ -351,7 +345,7 @@ public class BoardView extends View {
                         case VANISH:
                             return (dstCard.getType() == Card.Type.FLEX && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case POTIONIZE:
-                            return ((dstCard.getType() == Card.Type.CASH || dstCard.getType() == Card.Type.DRINK || dstCard.getType() == Card.Type.HIT || dstCard.getType() == Card.Type.BLOCK) && (destination < 10 || destination == LOC_BACKPACK) && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                            return ((dstCard.getType() == Card.Type.CASH || dstCard.getType() == Card.Type.DRINK || dstCard.getType() == Card.Type.HIT || dstCard.getType() == Card.Type.BLOCK) && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case BASH:
                             return (destination < 10 && dstCard.getType() == Card.Type.FEAR &&
                                     ((source == LOC_LEFT_HAND && mRowBottom[2].getCard() != null && mRowBottom[2].getCard().getType() == Card.Type.BLOCK) ||
@@ -377,6 +371,8 @@ public class BoardView extends View {
                                             (source == LOC_RIGHT_HAND && mRowBottom[0].getCard() != null && mRowBottom[0].getCard().getType() == Card.Type.HIT)));
                         case TRADE:
                             return ((dstCard.getType() != Card.Type.FEAR && dstCard.getType() != Card.Type.FLEX) && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                        case MIDAS:
+                            return ((dstCard.getType() != Card.Type.FLEX && dstCard.getValue() > 0) && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         //TODO other fun stuff here
                         default:
                             return false;
@@ -543,6 +539,11 @@ public class BoardView extends View {
                             dstCard.setType(Card.Type.DRINK);
                             dstCard.setValue((int) (Math.random() * 9 + 2));
                             animateCardImprove(destination);
+                            if (destination == LOC_LEFT_HAND || destination == LOC_RIGHT_HAND) { //Actually use
+                                dstCard.setActive(false);
+                                hero.setValue(Math.min(Card.HERO_MAX + mHealthAddition, hero.getValue() + dstCard.getValue()));
+                                animateCardImprove(LOC_HERO);
+                            }
                             srcPosition.setCard(null);
                             break;
                         case VANISH:
@@ -697,6 +698,23 @@ public class BoardView extends View {
                                         mRowTop[i].setCard(null);
                                     }
                                 }
+                            }
+                            srcPosition.setCard(null);
+                            break;
+                        case MIDAS:
+                            switch (dstCard.getType()) {
+                                case FEAR:
+                                    dstCard.setValue(dstCard.getValue() / 2);
+                                    break;
+                                case ZAP:
+                                    dstCard.setValue(dstCard.getValue() * 2);
+                                    break;
+                            }
+                            dstCard.setType(Card.Type.CASH);
+                            animateCardImprove(destination);
+                            if (destination == LOC_LEFT_HAND || destination == LOC_RIGHT_HAND || destination == LOC_BACKPACK) { //Actually use
+                                dstCard.setActive(false);
+                                mCoins += dstCard.getValue();
                             }
                             srcPosition.setCard(null);
                             break;
