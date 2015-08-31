@@ -141,7 +141,7 @@ public class BoardView extends View {
 
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.TRAP);
+//        card.setAbility(Card.Ability.DEVOUR);
 //        mRowTop[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
@@ -370,6 +370,7 @@ public class BoardView extends View {
                                     ((source == LOC_LEFT_HAND && mRowBottom[2].getCard() != null && mRowBottom[2].getCard().getType() == Card.Type.HIT) ||
                                             (source == LOC_RIGHT_HAND && mRowBottom[0].getCard() != null && mRowBottom[0].getCard().getType() == Card.Type.HIT)));
                         case TRADE:
+                        case DEVOUR:
                             return (dstCard.getType() != Card.Type.FEAR && dstCard.getType() != Card.Type.FLEX && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case MIDAS:
                             return (dstCard.getType() != Card.Type.FLEX && dstCard.getValue() > 0 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
@@ -540,6 +541,7 @@ public class BoardView extends View {
                         case POTIONIZE:
                             dstCard.setType(Card.Type.DRINK);
                             dstCard.setValue((int) (Math.random() * 9 + 2));
+                            dstCard.setActive(true);
                             animateCardImprove(destination);
                             if (destination == LOC_LEFT_HAND || destination == LOC_RIGHT_HAND) { //Actually use
                                 dstCard.setActive(false);
@@ -613,7 +615,7 @@ public class BoardView extends View {
                             break;
                         case STEAL:
                             Card stolenCard = mDeck.deal();
-                            if (stolenCard.getType() == Card.Type.CASH) { //Coins //TODO beautify
+                            if (stolenCard.getType() == Card.Type.CASH) { //Coins
                                 stolenCard.setActive(false);
                                 mCoins += stolenCard.getValue();
                             }
@@ -716,11 +718,21 @@ public class BoardView extends View {
                                     break;
                             }
                             dstCard.setType(Card.Type.CASH);
+                            dstCard.setActive(true);
                             animateCardImprove(destination);
                             if (destination == LOC_LEFT_HAND || destination == LOC_RIGHT_HAND || destination == LOC_BACKPACK) { //Actually use
                                 dstCard.setActive(false);
                                 mCoins += dstCard.getValue();
                             }
+                            srcPosition.setCard(null);
+                            break;
+                        case DEVOUR:
+                            if (destination < 10) {
+                                mRowTop[destination].setCard(Card.getSpecial());
+                            } else {
+                                mRowBottom[destination - 10].setCard(Card.getSpecial());
+                            }
+                            animateCardImprove(destination);
                             srcPosition.setCard(null);
                             break;
                         case TRAP:
@@ -1548,7 +1560,7 @@ public class BoardView extends View {
             curRelX = mDeckPosition.left - rect.left;
             curRelY = mDeckPosition.top - rect.top;
             curScale = mDeckPosition.width() / rect.width();
-            ticksLeft = (int) (Math.sqrt(curRelX * curRelX + curRelY * curRelY) / mDragReturnSpeed); //!!! change
+            ticksLeft = (int) (Math.sqrt(curRelX * curRelX + curRelY * curRelY) / mDragReturnSpeed);
             dx = -curRelX / ticksLeft;
             dy = -curRelY / ticksLeft;
             ds = (1 - curScale) / ticksLeft;
@@ -1609,7 +1621,7 @@ public class BoardView extends View {
             RectF rect = position.getRect();
             curRelX = mDeckPosition.left - rect.left;
             curRelY = mDeckPosition.top - rect.top;
-            ticksLeft = (int) (Math.sqrt(curRelX * curRelX + curRelY * curRelY) / mDragReturnSpeed); //!!! change
+            ticksLeft = (int) (Math.sqrt(curRelX * curRelX + curRelY * curRelY) / mDragReturnSpeed);
             curRelX = 0;
             curRelY = 0;
             curScale = 1;
@@ -1667,7 +1679,7 @@ public class BoardView extends View {
             this.position = position;
             RectF rect = position.getRect();
             curRelY = getMeasuredHeight() - rect.top;
-            ticksLeft = (int) (curRelY / mDragReturnSpeed * 2); //!!! change
+            ticksLeft = (int) (curRelY / mDragReturnSpeed * 2);
             dy = curRelY / ticksLeft;
             curRelY = 0;
         }
@@ -1712,7 +1724,7 @@ public class BoardView extends View {
         public HeroAppearAnimation() {
             RectF rect = mRowBottom[1].getRect();
             curRelHeight = rect.bottom;
-            ticksLeft = (int) ((rect.bottom - rect.top) / mDragReturnSpeed * 6); //!!! change
+            ticksLeft = (int) ((rect.bottom - rect.top) / mDragReturnSpeed * 6);
             dh = -rect.height() / ticksLeft;
         }
 
@@ -1758,7 +1770,7 @@ public class BoardView extends View {
         public HeroVanishAnimation() {
             RectF rect = mRowBottom[1].getRect();
             curRelHeight = rect.top;
-            ticksLeft = (int) ((rect.bottom - rect.top) / mDragReturnSpeed * 8); //!!! change
+            ticksLeft = (int) ((rect.bottom - rect.top) / mDragReturnSpeed * 8);
             curTint = 0;
             dt = 221f / ticksLeft;
             dh = rect.height() / ticksLeft;
@@ -1945,7 +1957,7 @@ public class BoardView extends View {
         public CardSufferAnimation(Position position) {
             this.position = position;
             RectF rect = position.getRect();
-            mStepLength = rect.width() / 12; //!!! change
+            mStepLength = rect.width() / 12;
             mCurrentStep = 0;
         }
 
@@ -2059,7 +2071,7 @@ public class BoardView extends View {
             curRelX = (getMeasuredWidth() / 2 - rect.left - rect.width() / 2);
             curRelY = (getMeasuredHeight() / 2 - rect.top - rect.height() / 2);
             curScale = 1;
-            ticksLeft = (int) (Math.sqrt(curRelX * curRelX + curRelY + curRelY)) / mDragReturnSpeed * 20; //!!! change
+            ticksLeft = (int) (Math.sqrt(curRelX * curRelX + curRelY + curRelY)) / mDragReturnSpeed * 20;
             dx = curRelX / ticksLeft;
             dy = curRelY / ticksLeft;
             curRelX = 0;
