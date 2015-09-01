@@ -141,7 +141,7 @@ public class BoardView extends View {
 
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.DEVOUR);
+//        card.setAbility(Card.Ability.MIRROR);
 //        mRowTop[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
@@ -370,11 +370,13 @@ public class BoardView extends View {
                                     ((source == LOC_LEFT_HAND && mRowBottom[2].getCard() != null && mRowBottom[2].getCard().getType() == Card.Type.HIT) ||
                                             (source == LOC_RIGHT_HAND && mRowBottom[0].getCard() != null && mRowBottom[0].getCard().getType() == Card.Type.HIT)));
                         case TRADE:
-                        case DEVOUR:
                             return (dstCard.getType() != Card.Type.FEAR && dstCard.getType() != Card.Type.FLEX && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case MIDAS:
                             return (dstCard.getType() != Card.Type.FLEX && dstCard.getValue() > 0 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                        case DEVOUR:
+                            return (dstCard.getType() != Card.Type.FLEX && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case TRAP:
+                        case MIRROR:
                             return (destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         //TODO other fun stuff here
                         default:
@@ -400,9 +402,8 @@ public class BoardView extends View {
             case HIT:
             case BLOCK:
             case DRINK:
-                return (location < 10 || location == LOC_BACKPACK);
             case ZAP:
-                return true; //TODO can discard equipped ability?
+                return (location < 10 || location == LOC_BACKPACK);
             case CASH:
                 return (location < 10);
         }
@@ -656,7 +657,8 @@ public class BoardView extends View {
                             srcPosition.setCard(null);
                             break;
                         case LUCKY:
-                            for (int i = 0; i < 2; i++) {
+                            int randomCount = 2 - (int)(Math.random() * 3) / 2;
+                            for (int i = 0; i < randomCount; i++) {
                                 int randomTarget;
                                 Card randomCard;
                                 do {
@@ -737,6 +739,10 @@ public class BoardView extends View {
                             break;
                         case TRAP:
                             dstCard.setActive(false);
+                            srcPosition.setCard(null);
+                            break;
+                        case MIRROR:
+                            animateReceiveCard(dstCard, destination);
                             srcPosition.setCard(null);
                             break;
                     }
