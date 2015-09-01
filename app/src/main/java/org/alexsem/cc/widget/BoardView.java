@@ -141,7 +141,7 @@ public class BoardView extends View {
 
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.MIRROR);
+//        card.setAbility(Card.Ability.BLOODPACT);
 //        mRowTop[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
@@ -350,8 +350,6 @@ public class BoardView extends View {
                             return (destination < 10 && dstCard.getType() == Card.Type.FEAR &&
                                     ((source == LOC_LEFT_HAND && mRowBottom[2].getCard() != null && mRowBottom[2].getCard().getType() == Card.Type.BLOCK) ||
                                             (source == LOC_RIGHT_HAND && mRowBottom[0].getCard() != null && mRowBottom[0].getCard().getType() == Card.Type.BLOCK)));
-                        case EXCHANGE:
-                            return (mDeck.size() > 0 && destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case STEAL:
                             return (dstCard.getType() == Card.Type.FLEX && mDeck.size() > 0 && mRowBottom[3].getCard() == null && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case KILLER:
@@ -375,9 +373,12 @@ public class BoardView extends View {
                             return (dstCard.getType() != Card.Type.FLEX && dstCard.getValue() > 0 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case DEVOUR:
                             return (dstCard.getType() != Card.Type.FLEX && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                        case EXCHANGE:
                         case TRAP:
                         case MIRROR:
                             return (destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                        case BLOODPACT:
+                            return (dstCard.getType() == Card.Type.FEAR && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         //TODO other fun stuff here
                         default:
                             return false;
@@ -743,6 +744,20 @@ public class BoardView extends View {
                             break;
                         case MIRROR:
                             animateReceiveCard(dstCard, destination);
+                            srcPosition.setCard(null);
+                            break;
+                        case BLOODPACT:
+                            Card heroCard = mRowBottom[1].getCard();
+                            int tempHp = dstCard.getValue();
+                            dstCard.setValue(heroCard.getValue());
+                            heroCard.setValue(tempHp);
+                            if (tempHp >= dstCard.getValue()) { //Hero health increased
+                                animateCardImprove(LOC_HERO);
+                                animateCardSuffer(destination);
+                            } else { //Mob health increased
+                                animateCardSuffer(LOC_HERO);
+                                animateCardImprove(destination);
+                            }
                             srcPosition.setCard(null);
                             break;
                     }
