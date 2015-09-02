@@ -141,7 +141,7 @@ public class BoardView extends View {
 
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.BLOODPACT);
+//        card.setAbility(Card.Ability.EQUALIZE);
 //        mRowTop[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
@@ -355,7 +355,7 @@ public class BoardView extends View {
                         case KILLER:
                             return (dstCard.getType() == Card.Type.FEAR && destination < 10 && dstCard.isWounded() && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case FORTIFY:
-                            return (dstCard.getType() != Card.Type.FEAR && dstCard.getType() != Card.Type.ZAP && dstCard.isActive() && destination != LOC_HERO && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                            return (dstCard.getType() != Card.Type.FEAR && dstCard.getType() != Card.Type.FLEX && dstCard.getValue() > 0 && dstCard.isActive() && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case REFLECT:
                         case REVIVE:
                         case LUCKY:
@@ -379,6 +379,8 @@ public class BoardView extends View {
                             return (destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case BLOODPACT:
                             return (dstCard.getType() == Card.Type.FEAR && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                        case EQUALIZE:
+                            return (destination < 10 && dstCard.getValue() > 0 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         //TODO other fun stuff here
                         default:
                             return false;
@@ -630,7 +632,7 @@ public class BoardView extends View {
                             srcPosition.setCard(null);
                             break;
                         case FORTIFY:
-                            dstCard.setValue(dstCard.getValue() + 5);
+                            dstCard.setValue(dstCard.getValue() + srcCard.getValue());
                             animateCardImprove(destination);
                             srcPosition.setCard(null);
                             break;
@@ -698,7 +700,7 @@ public class BoardView extends View {
                         case BETRAYAL:
                             for (int i = 0; i < 4; i++) {
                                 Card card = mRowTop[i].getCard();
-                                if (Math.abs(i - destination) == 1 && card != null && (card.getType() != Card.Type.ZAP)) {
+                                if (Math.abs(i - destination) == 1 && card != null && card.getType() != Card.Type.ZAP) {
                                     if (card.getValue() > dstCard.getValue()) { //Card can take damage (and more)
                                         card.setValue(card.getValue() - dstCard.getValue());
                                         animateCardSuffer(i);
@@ -757,6 +759,20 @@ public class BoardView extends View {
                             } else { //Mob health increased
                                 animateCardSuffer(LOC_HERO);
                                 animateCardImprove(destination);
+                            }
+                            srcPosition.setCard(null);
+                            break;
+                        case EQUALIZE:
+                            for (int i = 0; i < 4; i++) {
+                                Card card = mRowTop[i].getCard();
+                                if (Math.abs(i - destination) == 1 && card != null && card.getValue() > 0) {
+                                    if (card.getValue() <= dstCard.getValue()) { //Card increased value
+                                        animateCardImprove(i);
+                                    } else { //Value decreased
+                                        animateCardSuffer(i);
+                                    }
+                                    card.setValue(dstCard.getValue());
+                                }
                             }
                             srcPosition.setCard(null);
                             break;
