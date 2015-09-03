@@ -10,7 +10,7 @@ public class Card {
 
     public enum Ability {
         SAP, VANISH, LEECH, SACRIFICE, POTIONIZE, KILLER, EXCHANGE, STEAL, LASH, BASH, REFLECT, BETRAYAL, REVIVE, FRENZY, LUCKY,
-        TRADE, /*SWAP, MORPH,*/ FORTIFY, MIDAS, DEVOUR, TRAP, LIFE,/* BLEED, SUICIDE,*/ BLOODPACT, /*BOUNTY,*/ EQUALIZE, /*DIGGER,*/ MIRROR
+        TRADE, SWAP, /*MORPH,*/ FORTIFY, MIDAS, DEVOUR, TRAP, LIFE,/* BLEED, SUICIDE,*/ BLOODPACT, /*BOUNTY,*/ EQUALIZE, /*DIGGER,*/ MIRROR
     }
 
     private static final String[] mobNames = {"", "", "PLAGUE", "CROW", "FIRELAMB", "SLIME", "INCUBUS", "GOBLIN", "SPIDER", "TROLL", "SOULEATER"};
@@ -70,19 +70,21 @@ public class Card {
 
     public void setAbility(Ability ability) {
         this.ability = ability;
-        this.setName(this.getAbility().name().toUpperCase());
-        switch (this.getAbility()) {
-            case LEECH:
-            case LASH:
-                this.setValue(3);
-                break;
-            case FORTIFY:
-            case LIFE:
-                this.setValue(5);
-                break;
-            default:
-                this.setValue(0);
-                break;
+        if (ability != null) {
+            this.setName(this.getAbility().name().toUpperCase());
+            switch (this.getAbility()) {
+                case LEECH:
+                case LASH:
+                    this.setValue(3);
+                    break;
+                case FORTIFY:
+                case LIFE:
+                    this.setValue(5);
+                    break;
+                default:
+                    this.setValue(0);
+                    break;
+            }
         }
     }
 
@@ -139,6 +141,22 @@ public class Card {
         }
         card.setActive(true);
         card.setWounded(false);
+        return card;
+    }
+
+    /**
+     * Create new card by cloning the existing one
+     * @param source Card to clone
+     * @return Cloned card
+     */
+    public static Card clone(Card source) {
+        Card card = new Card();
+        card.setType(source.getType());
+        card.setValue(source.getValue());
+        card.setActive(source.isActive());
+        card.setWounded(source.isWounded());
+        card.setName(source.getName());
+        card.setAbility(source.getAbility());
         return card;
     }
 

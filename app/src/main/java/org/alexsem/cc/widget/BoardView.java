@@ -141,7 +141,7 @@ public class BoardView extends View {
 
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.EQUALIZE);
+//        card.setAbility(Card.Ability.SWAP);
 //        mRowTop[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
@@ -379,6 +379,7 @@ public class BoardView extends View {
                             return (destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case BLOODPACT:
                             return (dstCard.getType() == Card.Type.FEAR && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                        case SWAP:
                         case EQUALIZE:
                             return (destination < 10 && dstCard.getValue() > 0 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         //TODO other fun stuff here
@@ -584,9 +585,7 @@ public class BoardView extends View {
                             break;
                         case LASH:
                             boolean leftToRight = (Math.random() < 0.5f);
-                            int lashedCount = 0;
-                            int lashIndex = leftToRight ? 0 : 3;
-                            while (lashedCount < 3) {
+                            for (int lashedCount = 0, lashIndex = leftToRight ? 0 : 3; lashIndex >= 0 && lashIndex >= 3 && lashedCount < 3; lashIndex += (leftToRight ? 1 : -1)) {
                                 Card card = mRowTop[lashIndex].getCard();
                                 if (card != null && (card.getType() == Card.Type.FEAR)) {
                                     if (card.getValue() > srcCard.getValue()) { //Card can take damage (and more)
@@ -599,10 +598,6 @@ public class BoardView extends View {
                                     }
                                     lashedCount++;
                                 } else if (lashedCount > 0) {
-                                    break;
-                                }
-                                lashIndex += (leftToRight ? 1 : -1);
-                                if (lashIndex < 0 || lashIndex > 3) {
                                     break;
                                 }
                             }
@@ -660,7 +655,7 @@ public class BoardView extends View {
                             srcPosition.setCard(null);
                             break;
                         case LUCKY:
-                            int randomCount = 2 - (int)(Math.random() * 3) / 2;
+                            int randomCount = 2 - (int) (Math.random() * 3) / 2;
                             for (int i = 0; i < randomCount; i++) {
                                 int randomTarget;
                                 Card randomCard;
@@ -745,7 +740,9 @@ public class BoardView extends View {
                             srcPosition.setCard(null);
                             break;
                         case MIRROR:
-                            animateReceiveCard(dstCard, destination);
+                            Card mirroredCard = Card.clone(dstCard);
+                            mirroredCard.setActive(true);
+                            animateReceiveCard(mirroredCard, destination);
                             srcPosition.setCard(null);
                             break;
                         case BLOODPACT:
@@ -773,6 +770,33 @@ public class BoardView extends View {
                                     }
                                     card.setValue(dstCard.getValue());
                                 }
+                            }
+                            srcPosition.setCard(null);
+                            break;
+                        case SWAP:
+                            boolean left2Right = (Math.random() < 0.5f);
+                            for (int swapIndex = left2Right ? 0 : 3; swapIndex >= 0 && swapIndex <= 3; swapIndex += (left2Right ? 1 : -1)) {
+                                Card card = mRowTop[swapIndex].getCard();
+                                if (Math.abs(swapIndex - destination) != 1 || card == null) {
+                                    continue;
+                                }
+                                if (card.getValue() > 0) {
+                                    int tempValue = dstCard.getValue();
+                                    dstCard.setValue(card.getValue());
+                                    card.setValue(tempValue);
+                                    if (tempValue > dstCard.getValue()) { //Adjacent card improved
+                                        animateCardImprove(swapIndex);
+                                        animateCardSuffer(destination);
+                                    } else if (tempValue < dstCard.getValue()) { //Adjacent card value decreased
+                                        animateCardSuffer(swapIndex);
+                                        animateCardImprove(destination);
+                                    } else { //Equality
+                                        animateCardImprove(swapIndex);
+                                        animateCardImprove(destination);
+                                    }
+                                    break;
+                                }
+
                             }
                             srcPosition.setCard(null);
                             break;
@@ -959,7 +983,11 @@ public class BoardView extends View {
 //                    canvas.drawLine(cx - radius * 3 / 6, cy + radius, cx - radius * 3 / 6 - radius / 3, cy + radius + radius / 3, mPaint);
 //                    canvas.drawLine(cx + radius * 3 / 6, cy + radius, cx + radius * 3 / 6 + radius / 3, cy + radius + radius / 3, mPaint);
                     int value = card.getValue();
-                    if (value >= 10) {
+                    if (value >=24) {
+                        canvas.drawArc(new RectF(cx - radius * 7 / 6, cy + radius * 4 / 6 - radius * 2 / 3, cx + radius * 7 / 6, cy + radius * 4 / 3), 0, 180, false, mPaint);
+                    }else if (value >= 18) {
+                        canvas.drawArc(new RectF(cx - radius * 4 / 6 - radius * (value - 17) / 14, cy + radius * 4 / 6 - radius * 2 / 3, cx + radius * 4 / 6 + radius * (value - 17) / 14, cy + radius * 4 / 3), 0, 180, false, mPaint);
+                    } else if (value >= 10) {
                         canvas.drawArc(new RectF(cx - radius * 4 / 6, cy + radius * 4 / 6 + radius * (13 - value) / 6, cx + radius * 4 / 6, cy + radius * 4 / 3), 0, 180, false, mPaint);
                     } else if (value >= 8) {
                         canvas.drawArc(new RectF(cx - radius * 4 / 6 + radius * (10 - value) / 6, cy + radius * 7 / 6, cx + radius * 4 / 6 - radius * (10 - value) / 6, cy + radius * 4 / 3), 0, 180, false, mPaint);
