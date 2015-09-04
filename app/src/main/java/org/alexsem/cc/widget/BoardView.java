@@ -140,9 +140,9 @@ public class BoardView extends View {
         invalidate();
 
 
-//        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.SWAP);
-//        mRowTop[0].setCard(card);
+        Card card = Card.getSpecial(); //TODO
+        card.setAbility(Card.Ability.LASH);
+        mRowTop[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
 //        mRowTop[1].setCard(card);
@@ -354,8 +354,6 @@ public class BoardView extends View {
                             return (dstCard.getType() == Card.Type.FLEX && mDeck.size() > 0 && mRowBottom[3].getCard() == null && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case KILLER:
                             return (dstCard.getType() == Card.Type.FEAR && destination < 10 && dstCard.isWounded() && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
-                        case FORTIFY:
-                            return (dstCard.getType() != Card.Type.FEAR && dstCard.getType() != Card.Type.FLEX && dstCard.getValue() > 0 && dstCard.isActive() && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case REFLECT:
                         case REVIVE:
                         case LUCKY:
@@ -370,6 +368,7 @@ public class BoardView extends View {
                         case TRADE:
                             return (dstCard.getType() != Card.Type.FEAR && dstCard.getType() != Card.Type.FLEX && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case MIDAS:
+                        case FORTIFY:
                             return (dstCard.getType() != Card.Type.FLEX && dstCard.getValue() > 0 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case DEVOUR:
                             return (dstCard.getType() != Card.Type.FLEX && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
@@ -585,7 +584,7 @@ public class BoardView extends View {
                             break;
                         case LASH:
                             boolean leftToRight = (Math.random() < 0.5f);
-                            for (int lashedCount = 0, lashIndex = leftToRight ? 0 : 3; lashIndex >= 0 && lashIndex >= 3 && lashedCount < 3; lashIndex += (leftToRight ? 1 : -1)) {
+                            for (int lashedCount = 0, lashIndex = leftToRight ? 0 : 3; lashIndex >= 0 && lashIndex <= 3 && lashedCount < 3; lashIndex += (leftToRight ? 1 : -1)) {
                                 Card card = mRowTop[lashIndex].getCard();
                                 if (card != null && (card.getType() == Card.Type.FEAR)) {
                                     if (card.getValue() > srcCard.getValue()) { //Card can take damage (and more)
