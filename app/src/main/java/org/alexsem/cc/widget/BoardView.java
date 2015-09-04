@@ -140,9 +140,9 @@ public class BoardView extends View {
         invalidate();
 
 
-        Card card = Card.getSpecial(); //TODO
-        card.setAbility(Card.Ability.LASH);
-        mRowTop[0].setCard(card);
+//        Card card = Card.getSpecial(); //TODO
+//        card.setAbility(Card.Ability.LASH);
+//        mRowTop[0].setCard(card);
 //        card = Card.getSpecial();
 //        card.setAbility(Card.Ability.POTIONIZE);
 //        mRowTop[1].setCard(card);
@@ -584,7 +584,8 @@ public class BoardView extends View {
                             break;
                         case LASH:
                             boolean leftToRight = (Math.random() < 0.5f);
-                            for (int lashedCount = 0, lashIndex = leftToRight ? 0 : 3; lashIndex >= 0 && lashIndex <= 3 && lashedCount < 3; lashIndex += (leftToRight ? 1 : -1)) {
+                            int maxLash = (int)(Math.random() * 3) + 1;
+                            for (int lashedCount = 0, lashIndex = leftToRight ? 0 : 3; lashIndex >= 0 && lashIndex <= 3 && lashedCount < maxLash; lashIndex += (leftToRight ? 1 : -1)) {
                                 Card card = mRowTop[lashIndex].getCard();
                                 if (card != null && (card.getType() == Card.Type.FEAR)) {
                                     if (card.getValue() > srcCard.getValue()) { //Card can take damage (and more)
@@ -596,8 +597,6 @@ public class BoardView extends View {
                                         mRowTop[lashIndex].setCard(null);
                                     }
                                     lashedCount++;
-                                } else if (lashedCount > 0) {
-                                    break;
                                 }
                             }
                             srcPosition.setCard(null);
