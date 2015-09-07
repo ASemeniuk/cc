@@ -5,12 +5,50 @@ public class Card {
     public static final int HERO_MAX = 13;
 
     public enum Type {
-        FLEX, FEAR, HIT, BLOCK, DRINK, CASH, ZAP
+        HERO, MONSTER, WEAPON, SHIELD, POTION, COIN, ABILITY
     }
 
     public enum Ability {
-        SAP, VANISH, LEECH, SACRIFICE, POTIONIZE, KILLER, EXCHANGE, STEAL, LASH, BASH, REFLECT, BETRAYAL, REVIVE, FRENZY, LUCKY,
-        TRADE, SWAP, /*MORPH,*/ FORTIFY, MIDAS, DEVOUR, TRAP, LIFE,/* BLEED, SUICIDE,*/ BLOODPACT, /*BOUNTY,*/ EQUALIZE, /*DIGGER,*/ MIRROR
+        SAP("Push back a dungeon card into the deck"),
+        VANISH("Redraw all dungeon cards"),
+        LEECH("Attack a monster and heal up to 3 life"),
+        SACRIFICE("Attack a monster for the amount of player life missing"),
+        POTIONIZE("Transform and item card into a random potion card"),
+        KILLER("Remove a damaged dungeon card"),
+        EXCHANGE("Move a dungeon card back into the deck and replace it with one of your ability cards"),
+        STEAL("If your backpack is empty add the next card from the deck into it"),
+        LASH("Attack between 1 and 3 monster cards for 3"),
+        BASH("Use an equipped shield as a weapon. Each attack the shield looses 5 durability"),
+        REFLECT("Reflect the damage taken to a random dungeon card"),
+        BETRAYAL("Force a monster to attack its neighbour cards"),
+        REVIVE("After taking fatal damage, revive the player with 1 health"),
+        FRENZY("Attack with your equipped weapon twice"),
+        LUCKY("Remove up to 2 randomly selected dungeon cards"),
+        TRADE("Sell any non monster card for 10 gold"),
+        SWAP("Swap the value of the selected dungeon card with a random adjacent card"),
+        //MORPH("Transform a card into a random new card"),
+        FORTIFY("Increase a cards value by 5"),
+        MIDAS("Transform a card into a coin card. Monster cards halve their value, ability cards double it"),
+        DEVOUR("Transform a card into a random ability card"),
+        TRAP("Trap a dungeon card. This card does not need to be played"),
+        LIFE("Raise the player life by 5. If it exceeds 13 raise the maximum life"),
+        //BLEED("Collect 1 gold for each point of damage taken in one turn"),
+        //SUICIDE("Redraw 4 random monster cards"),
+        BLOODPACT("Swap the player health with a monster card"),
+        //BOUNTY("Collect 3 gold for each monster slain bigger or equal to 10"),
+        EQUALIZE("Give the adjacent cards the value of the selected dungeon card"),
+        //DIGGER("Shuffle 3 randomly selected removed cards back into the deck"),
+        MIRROR("Duplicate a dungeon card and shuffle it back into the deck");
+
+        Ability(String description) {
+            this.description = description;
+        }
+
+        private String description;
+
+        public String getDescription() {
+            return description;
+        }
     }
 
     private static final String[] mobNames = {"", "", "PLAGUE", "CROW", "FIRELAMB", "SLIME", "INCUBUS", "GOBLIN", "SPIDER", "TROLL", "SOULEATER"};
@@ -90,7 +128,7 @@ public class Card {
 
     public static Card getHero() {
         Card card = new Card();
-        card.setType(Type.FLEX);
+        card.setType(Type.HERO);
         card.setValue(HERO_MAX);
         card.setActive(true);
         card.setWounded(false);
@@ -100,7 +138,7 @@ public class Card {
 
     public static Card getSpecial() {
         Card card = new Card();
-        card.setType(Type.ZAP);
+        card.setType(Type.ABILITY);
         card.setActive(true);
         card.setWounded(false);
         card.setAbility(abilities[(int) (Math.random() * abilities.length)]);
@@ -113,7 +151,7 @@ public class Card {
         card.setValue(value);
         card.setActive(true);
         card.setWounded(false);
-        if (type == Type.FEAR) {
+        if (type == Type.MONSTER) {
             card.setName(mobNames[value]);
         } else {
             card.setName("");
@@ -126,16 +164,16 @@ public class Card {
         Card card = new Card();
         card.setType(types[(int) (Math.random() * (types.length - 1)) + 1]);
         switch (card.getType()) {
-            case FEAR:
-            case DRINK:
-            case CASH:
+            case MONSTER:
+            case POTION:
+            case COIN:
                 card.setValue((int) (Math.random() * 9) + 2);
                 break;
-            case HIT:
-            case BLOCK:
+            case WEAPON:
+            case SHIELD:
                 card.setValue((int) (Math.random() * 6) + 2);
                 break;
-            case ZAP:
+            case ABILITY:
                 card = getSpecial();
                 break;
         }

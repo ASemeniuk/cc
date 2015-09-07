@@ -25,12 +25,12 @@ public class Deck {
         Deck deck = new Deck();
         List<Card> cards = new ArrayList<>();
         Map<Card.Type, Integer> limits = new HashMap<>();
-        limits.put(Card.Type.FEAR, 19);
-        limits.put(Card.Type.HIT, 6);
-        limits.put(Card.Type.BLOCK, 6);
-        limits.put(Card.Type.DRINK, 9);
-        limits.put(Card.Type.CASH, 9);
-        limits.put(Card.Type.ZAP, 5);
+        limits.put(Card.Type.MONSTER, 19);
+        limits.put(Card.Type.WEAPON, 6);
+        limits.put(Card.Type.SHIELD, 6);
+        limits.put(Card.Type.POTION, 9);
+        limits.put(Card.Type.COIN, 9);
+        limits.put(Card.Type.ABILITY, 5);
         Set<Card.Ability> specials = new HashSet<>();
         for (int i = 0; i < 54; i++) {
             boolean ok = false;
@@ -38,7 +38,7 @@ public class Deck {
                 Card card = Card.random();
                 Card.Type type = card.getType();
                 if (limits.get(type) > 0) {
-                    if (type == Card.Type.ZAP) {
+                    if (type == Card.Type.ABILITY) {
                         if (!specials.contains(card.getAbility())) { //New special card
                             specials.add(card.getAbility());
                         } else { //Already added
@@ -66,16 +66,16 @@ public class Deck {
         List<Card> cards = new ArrayList<>();
         //Mobs & Potions & Coins
         for (int i = 2; i <= 10; i++) {
-            cards.add(Card.getOther(Card.Type.FEAR, i));
-            cards.add(Card.getOther(Card.Type.FEAR, i));
-            cards.add(Card.getOther(Card.Type.DRINK, i));
-            cards.add(Card.getOther(Card.Type.CASH, i));
+            cards.add(Card.getOther(Card.Type.MONSTER, i));
+            cards.add(Card.getOther(Card.Type.MONSTER, i));
+            cards.add(Card.getOther(Card.Type.POTION, i));
+            cards.add(Card.getOther(Card.Type.COIN, i));
         }
-        cards.add(Card.getOther(Card.Type.FEAR, 10));
+        cards.add(Card.getOther(Card.Type.MONSTER, 10));
         //Swords & Shields
         for (int i = 2; i <= 7; i++) {
-            cards.add(Card.getOther(Card.Type.HIT, i));
-            cards.add(Card.getOther(Card.Type.BLOCK, i));
+            cards.add(Card.getOther(Card.Type.WEAPON, i));
+            cards.add(Card.getOther(Card.Type.SHIELD, i));
         }
         //Abilities
         Set<Card.Ability> specials = new HashSet<>();
