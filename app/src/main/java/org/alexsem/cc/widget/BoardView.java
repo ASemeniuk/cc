@@ -87,7 +87,6 @@ public class BoardView extends View {
     private Animation[] mCardAnimationTop = new Animation[4];
     private Animation[] mCardAnimationBottom = new Animation[4];
 
-
     private boolean isBeginning = false;
     private boolean isMeasurementChanged = false;
     private boolean isGameOver = false;
@@ -147,13 +146,9 @@ public class BoardView extends View {
         isMeasurementChanged = true;
         invalidate();
 
-
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.REFLECT);
+//        card.setAbility(Card.Ability.MORPH);
 //        mRowTop[0].setCard(card);
-//        card = Card.getSpecial();
-//        card.setAbility(Card.Ability.POTIONIZE);
-//        mRowTop[1].setCard(card);
     }
 
     /**
@@ -407,6 +402,7 @@ public class BoardView extends View {
                         case MIDAS:
                         case FORTIFY:
                             return (dstCard.getType() != Card.Type.HERO && dstCard.getValue() > 0 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                        case MORPH:
                         case DEVOUR:
                             return (dstCard.getType() != Card.Type.HERO && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case EXCHANGE:
@@ -787,6 +783,25 @@ public class BoardView extends View {
                             }
                             destroyCard(srcPosition);
                             break;
+                        case MORPH:
+                            Card randomCard = Card.random();
+                            if (destination < 10) {
+                                mRowTop[destination].setCard(randomCard);
+                            } else {
+                                mRowBottom[destination - 10].setCard(randomCard);
+                            }
+                            if (randomCard.getType() == Card.Type.POTION && (destination == LOC_LEFT_HAND || destination == LOC_RIGHT_HAND)) {
+                                randomCard.setActive(false);
+                                hero.setValue(Math.min(Card.HERO_MAX + mHealthAddition, hero.getValue() + randomCard.getValue()));
+                                animateCardImprove(LOC_HERO);
+                            }
+                            if (randomCard.getType() == Card.Type.COIN && (destination == LOC_LEFT_HAND || destination == LOC_RIGHT_HAND || destination == LOC_BACKPACK)) {
+                                randomCard.setActive(false);
+                                mCoins += randomCard.getValue();
+                            }
+                            animateCardImprove(destination);
+                            destroyCard(srcPosition);
+                            break;
                         case DEVOUR:
                             if (destination < 10) {
                                 mRowTop[destination].setCard(Card.getSpecial());
@@ -803,6 +818,7 @@ public class BoardView extends View {
                         case MIRROR:
                             Card mirroredCard = Card.clone(dstCard);
                             mirroredCard.setActive(true);
+                            mirroredCard.setWounded(false);
                             animateReceiveCard(mirroredCard, destination);
                             destroyCard(srcPosition);
                             break;

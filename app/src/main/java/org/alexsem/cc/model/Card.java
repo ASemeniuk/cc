@@ -26,7 +26,7 @@ public class Card {
         LUCKY("Remove up to 2 randomly selected dungeon cards"),
         TRADE("Sell any non monster card for 10 gold"),
         SWAP("Swap the value of the selected dungeon card with a random adjacent card"),
-        //MORPH("Transform a card into a random new card"),
+        MORPH("Transform a card into a random new card"),
         FORTIFY("Increase a cards value by 5"),
         MIDAS("Transform a card into a coin card. Monster cards halve their value, ability cards double it"),
         DEVOUR("Transform a card into a random ability card"),
@@ -159,7 +159,6 @@ public class Card {
         return card;
     }
 
-    @Deprecated
     public static Card random() {
         Card card = new Card();
         card.setType(types[(int) (Math.random() * (types.length - 1)) + 1]);
