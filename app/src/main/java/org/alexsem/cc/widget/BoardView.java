@@ -19,7 +19,9 @@ import org.alexsem.cc.model.Animation;
 import org.alexsem.cc.model.Card;
 import org.alexsem.cc.model.Deck;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class BoardView extends View {
@@ -68,7 +70,7 @@ public class BoardView extends View {
     private Position[] mRowBottom = new Position[4];
     private int mCoins;
     private int mHealthAddition;
-    private Set<Card> mGraveyard = new HashSet<>();
+    private List<Card> mGraveyard = new ArrayList<>();
     private boolean isFreshDeal;
     private boolean isNeedToReviveHero;
     private boolean isNeedToReflectDamage;
@@ -79,6 +81,7 @@ public class BoardView extends View {
     private Animation[] mDealAnimationBottom = new Animation[4];
     private int mReceiveAnimationCount = 0;
     private Animation[] mReceiveAnimationTop = new Animation[4];
+    private Animation[] mReceiveAnimationBottom = new Animation[4];
     private int mDropAnimationCount = 0;
     private Animation[] mDropAnimationBottom = new Animation[4];
     private boolean isHeroAnimated = false;
@@ -125,6 +128,7 @@ public class BoardView extends View {
             mDealAnimationTop[i] = null;
             mDealAnimationBottom[i] = null;
             mReceiveAnimationTop[i] = null;
+            mReceiveAnimationBottom[i] = null;
             mDropAnimationBottom[i] = null;
         }
         mGraveyard.clear();
@@ -147,7 +151,7 @@ public class BoardView extends View {
         invalidate();
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.MORPH);
+//        card.setAbility(Card.Ability.DIGGER);
 //        mRowTop[0].setCard(card);
     }
 
@@ -390,6 +394,7 @@ public class BoardView extends View {
                         case REVIVE:
                         case LUCKY:
                         case LIFE:
+                        case DIGGER:
                             return (dstCard.getType() == Card.Type.HERO && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case BETRAYAL:
                             return (dstCard.getType() == Card.Type.MONSTER && destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
@@ -830,6 +835,7 @@ public class BoardView extends View {
                             if (tempHp >= dstCard.getValue()) { //Hero health increased
                                 animateCardImprove(LOC_HERO);
                                 animateCardSuffer(destination);
+                                dstCard.setWounded(true);
                             } else { //Mob health increased
                                 animateCardSuffer(LOC_HERO);
                                 animateCardImprove(destination);
@@ -844,6 +850,7 @@ public class BoardView extends View {
                                         animateCardImprove(i);
                                     } else { //Value decreased
                                         animateCardSuffer(i);
+                                        card.setWounded(true);
                                     }
                                     card.setValue(dstCard.getValue());
                                 }
@@ -864,8 +871,10 @@ public class BoardView extends View {
                                     if (tempValue > dstCard.getValue()) { //Adjacent card improved
                                         animateCardImprove(swapIndex);
                                         animateCardSuffer(destination);
+                                        dstCard.setWounded(true);
                                     } else if (tempValue < dstCard.getValue()) { //Adjacent card value decreased
                                         animateCardSuffer(swapIndex);
+                                        card.setWounded(true);
                                         animateCardImprove(destination);
                                     } else { //Equality
                                         animateCardImprove(swapIndex);
@@ -876,6 +885,20 @@ public class BoardView extends View {
 
                             }
                             destroyCard(srcPosition);
+                            break;
+                        case DIGGER:
+                            destroyCard(srcPosition);
+                            for (int count = 0; count < 3 && mGraveyard.size() > 0; count++) {
+                                int random = (int)(Math.random() * mGraveyard.size());
+                                Card resedCard = Card.clone(mGraveyard.get(random));
+                                resedCard.setWounded(false);
+                                resedCard.setActive(true);
+                                if (resedCard.getType() == Card.Type.MONSTER) {
+                                    resedCard.setValue(Card.restoreMonsterValue(resedCard.getName()));
+                                }
+                                animateReceiveCard(resedCard, count + 10);
+                                mGraveyard.remove(random);
+                            }
                             break;
                     }
                     //TODO other funny stuff here
@@ -1303,6 +1326,12 @@ public class BoardView extends View {
                     mReceiveAnimationTop[i].draw(canvas);
                 }
             }
+            for (int i = 0; i < 4; i++) {
+                if (mReceiveAnimationBottom[i] != null) {
+                    mReceiveAnimationBottom[i].draw(canvas);
+                    break;
+                }
+            }
         }
 
         if (mDropAnimationCount > 0) { //Drop animations
@@ -1437,6 +1466,18 @@ public class BoardView extends View {
                         break;
                     }
                 }
+                for (int i = 0; i < 4; i++) {
+                    Animation animation = mReceiveAnimationBottom[i];
+                    if (animation != null) {
+                        animation.tick();
+                        if (animation.isFinished()) {
+                            animation.finish();
+                            mReceiveAnimationBottom[i] = null;
+                            mReceiveAnimationCount--;
+                        }
+                        break;
+                    }
+                }
                 if (mReceiveAnimationCount == 0) {
                     processMove();
                 }
@@ -1524,7 +1565,7 @@ public class BoardView extends View {
             if (source < 10) {
                 mReceiveAnimationTop[source] = new DeckReceiveAnimation(card, position);
             } else {
-//                mReceiveAnimationBottom[source - 10] = new DeckReceiveAnimation(card, position);
+                mReceiveAnimationBottom[source - 10] = new DeckReceiveAnimation(card, position);
             }
         }
         invalidate();

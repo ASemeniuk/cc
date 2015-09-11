@@ -37,7 +37,7 @@ public class Card {
         BLOODPACT("Swap the player health with a monster card"),
         //BOUNTY("Collect 3 gold for each monster slain bigger or equal to 10"),
         EQUALIZE("Give the adjacent cards the value of the selected dungeon card"),
-        //DIGGER("Shuffle 3 randomly selected removed cards back into the deck"),
+        DIGGER("Shuffle 3 randomly selected removed cards back into the deck"),
         MIRROR("Duplicate a dungeon card and shuffle it back into the deck");
 
         Ability(String description) {
@@ -195,6 +195,20 @@ public class Card {
         card.setName(source.getName());
         card.setAbility(source.getAbility());
         return card;
+    }
+
+    /**
+     * Restore monster value based on its name
+     * @param name Monster name
+     * @return respective value or 0
+     */
+    public static int restoreMonsterValue(String name) {
+        for (int i = 0; i < mobNames.length;i++) {
+            if (name.equals(mobNames[i])) {
+                return i;
+            }
+        }
+        return 0;
     }
 
 
