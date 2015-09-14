@@ -64,7 +64,7 @@ public class Deck {
         //Initialize
         Deck deck = new Deck();
         List<Card> cards = new ArrayList<>();
-        //Mobs & Potions & Coins
+        //Generate Monsters & Potions & Coins
         for (int i = 2; i <= 10; i++) {
             cards.add(Card.getOther(Card.Type.MONSTER, i));
             cards.add(Card.getOther(Card.Type.MONSTER, i));
@@ -72,12 +72,12 @@ public class Deck {
             cards.add(Card.getOther(Card.Type.COIN, i));
         }
         cards.add(Card.getOther(Card.Type.MONSTER, 10));
-        //Swords & Shields
+        //Generate Swords & Shields
         for (int i = 2; i <= 7; i++) {
             cards.add(Card.getOther(Card.Type.WEAPON, i));
             cards.add(Card.getOther(Card.Type.SHIELD, i));
         }
-        //Abilities
+        //Generate Abilities
         Set<Card.Ability> specials = new HashSet<>();
         for (int i = 0; i < 5; i++) {
             Card card;
@@ -87,9 +87,38 @@ public class Deck {
             specials.add(card.getAbility());
             cards.add(card);
         }
+        //Check for long sequences of similar cards
+        boolean deckOk;
+        do {
+            Collections.shuffle(cards);
+            deckOk = true;
+            quick:
+            for (int i = 0; i < cards.size(); i++) {
+                switch (cards.get(i).getType()) {
+                    case MONSTER:
+                    case WEAPON:
+                    case SHIELD:
+                    case POTION:
+                    case COIN:
+                        if (i > 1 && cards.get(i - 1).getType() == cards.get(i).getType() && cards.get(i - 2).getType() == cards.get(i).getType()) {
+                            deckOk = false;
+                            break quick;
+                        }
+                        break;
+                    case ABILITY:
+                        if (i > 1 && (cards.get(i - 1).getType() == cards.get(i).getType() || cards.get(i - 2).getType() == cards.get(i).getType())) {
+                            deckOk = false;
+                            break quick;
+                        }
+                        break;
+                }
+                if (i > 3 && cards.get(i).getType() != Card.Type.MONSTER && cards.get(i - 1).getType() != Card.Type.MONSTER && cards.get(i - 2).getType() != Card.Type.MONSTER && cards.get(i - 3).getType() != Card.Type.MONSTER && cards.get(i - 4).getType() != Card.Type.MONSTER) {
+                    deckOk = false;
+                    break;
+                }
+            }
+        } while (!deckOk);
         //Finalize
-        Collections.shuffle(cards);
-        Collections.shuffle(cards);
         deck.cards = cards;
         return deck;
     }

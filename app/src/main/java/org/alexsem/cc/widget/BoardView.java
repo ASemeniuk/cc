@@ -150,12 +150,9 @@ public class BoardView extends View {
         isMeasurementChanged = true;
         invalidate();
 
-        Card card = Card.getSpecial(); //TODO
-        card.setAbility(Card.Ability.LIFE);
-        mRowTop[0].setCard(card);
-        card = Card.getSpecial(); //TODO
-        card.setAbility(Card.Ability.LIFE);
-        mRowTop[1].setCard(card);
+//        Card card = Card.getSpecial(); //TODO
+//        card.setAbility(Card.Ability.LIFE);
+//        mRowTop[0].setCard(card);
     }
 
     /**
