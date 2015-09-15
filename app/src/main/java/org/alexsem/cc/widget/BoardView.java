@@ -152,7 +152,7 @@ public class BoardView extends View {
         invalidate();
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.LIFE);
+//        card.setAbility(Card.Ability.BLEED);
 //        mRowTop[0].setCard(card);
     }
 
@@ -400,6 +400,7 @@ public class BoardView extends View {
                         case LUCKY:
                         case LIFE:
                         case DIGGER:
+                        case BLEED:
                             return (dstCard.getType() == Card.Type.HERO && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case BETRAYAL:
                             return (dstCard.getType() == Card.Type.MONSTER && destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
@@ -912,6 +913,10 @@ public class BoardView extends View {
                                 mGraveyard.remove(random);
                             }
                             break;
+                        case BLEED:
+                            mCoins += mDamageTakenDuringTurn;
+                            destroyCard(srcPosition);
+                            break;
                     }
                     //TODO other funny stuff here
                 }
@@ -929,7 +934,7 @@ public class BoardView extends View {
             mDamageTakenDuringTurn = 0;
             isDamageTakenDuringTurn = true;
         }
-        mDamageTakenDuringTurn +=amount;
+        mDamageTakenDuringTurn += amount;
         mRowBottom[1].getCard().setValue(Math.max(0, mRowBottom[1].getCard().getValue() - amount));
         animateCardSuffer(LOC_HERO);
     }

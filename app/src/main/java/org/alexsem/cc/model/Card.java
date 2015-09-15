@@ -32,7 +32,7 @@ public class Card {
         DEVOUR("Transform a card into a random ability card"),
         TRAP("Trap a dungeon card. This card does not need to be played"),
         LIFE("Raise the player life by 5. If it exceeds 13 raise the maximum life"),
-        //BLEED("Collect 1 gold for each point of damage taken in one turn"),
+        BLEED("Collect 1 gold for each point of damage taken in one turn"),
         //SUICIDE("Redraw 4 random monster cards"),
         BLOODPACT("Swap the player health with a monster card"),
         //BOUNTY("Collect 3 gold for each monster slain bigger or equal to 10"),
