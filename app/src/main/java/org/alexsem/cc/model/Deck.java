@@ -95,7 +95,6 @@ public class Deck {
             quick:
             for (int i = 0; i < cards.size(); i++) {
                 switch (cards.get(i).getType()) {
-                    case MONSTER:
                     case WEAPON:
                     case SHIELD:
                     case POTION:
@@ -105,7 +104,17 @@ public class Deck {
                             break quick;
                         }
                         break;
+                    case MONSTER:
+                        if (i > 2 && cards.get(i - 1).getType() == cards.get(i).getType() && cards.get(i - 2).getType() == cards.get(i).getType() && cards.get(i - 3).getType() == cards.get(i).getType()) {
+                            deckOk = false;
+                            break quick;
+                        }
+                        break;
                     case ABILITY:
+                        if (i < 4) {
+                            deckOk = false;
+                            break quick;
+                        }
                         if (i > 1 && (cards.get(i - 1).getType() == cards.get(i).getType() || cards.get(i - 2).getType() == cards.get(i).getType())) {
                             deckOk = false;
                             break quick;
