@@ -20,9 +20,7 @@ import org.alexsem.cc.model.Card;
 import org.alexsem.cc.model.Deck;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class BoardView extends View {
 
@@ -68,10 +66,12 @@ public class BoardView extends View {
     private Box mDiscardBox;
     private Position[] mRowTop = new Position[4];
     private Position[] mRowBottom = new Position[4];
+    private List<Card> mGraveyard = new ArrayList<>();
     private int mCoins;
     private int mHealthAddition;
-    private List<Card> mGraveyard = new ArrayList<>();
+    private int mDamageTakenDuringTurn;
     private boolean isFreshDeal;
+    private boolean isDamageTakenDuringTurn;
     private boolean isNeedToReviveHero;
     private boolean isNeedToReflectDamage;
     private RectF mDeckPosition;
@@ -137,6 +137,7 @@ public class BoardView extends View {
         mDiscardBox = new Box();
         mCoins = 0;
         mHealthAddition = 0;
+        mDamageTakenDuringTurn = 0;
         mDealAnimationCount = 0;
         mReceiveAnimationCount = 0;
         mDropAnimationCount = 0;
@@ -171,6 +172,10 @@ public class BoardView extends View {
             }
         }
         isFreshDeal = true;
+        if (!isDamageTakenDuringTurn) {
+            mDamageTakenDuringTurn = 0;
+        }
+        isDamageTakenDuringTurn = false;
     }
 
     //--------------------------------------------------------------------------------------------------------------------
@@ -487,8 +492,7 @@ public class BoardView extends View {
                         mDragSpeedY = mDragRelY / mDragReturnTicks;
                         isNeedToReflectDamage = false;
                     } else { //Damage taken
-                        dstCard.setValue(Math.max(0, dstCard.getValue() - srcCard.getValue()));
-                        animateCardSuffer(LOC_HERO);
+                        takeDamage(srcCard.getValue());
                         destroyCard(srcPosition);
                     }
                 } else if (dstCard != null && dstCard.getType() == Card.Type.SHIELD) { //Block attack
@@ -525,8 +529,7 @@ public class BoardView extends View {
                             mDragSpeedY = mDragRelY / mDragReturnTicks;
                             isNeedToReflectDamage = false;
                         } else {
-                            hero.setValue(Math.max(0, hero.getValue() - (srcCard.getValue() - dstCard.getValue())));
-                            animateCardSuffer(LOC_HERO);
+                            takeDamage((srcCard.getValue() - dstCard.getValue()));
                             destroyCard(srcPosition);
                         }
                         animateCardCrack(dstCard, destination);
@@ -840,13 +843,13 @@ public class BoardView extends View {
                             Card heroCard = mRowBottom[1].getCard();
                             int tempHp = dstCard.getValue();
                             dstCard.setValue(heroCard.getValue());
-                            heroCard.setValue(tempHp);
                             if (tempHp >= dstCard.getValue()) { //Hero health increased
+                                heroCard.setValue(tempHp);
                                 animateCardImprove(LOC_HERO);
                                 animateCardSuffer(destination);
                                 dstCard.setWounded(true);
-                            } else { //Mob health increased
-                                animateCardSuffer(LOC_HERO);
+                            } else { //Mob health increased\
+                                takeDamage(dstCard.getValue() - tempHp);
                                 animateCardImprove(destination);
                             }
                             destroyCard(srcPosition);
@@ -915,6 +918,20 @@ public class BoardView extends View {
                 break;
         }
         processMove();
+    }
+
+    /**
+     * Apply damage to Hero card
+     * @param amount Damage to inflict
+     */
+    private void takeDamage(int amount) {
+        if (!isDamageTakenDuringTurn) {
+            mDamageTakenDuringTurn = 0;
+            isDamageTakenDuringTurn = true;
+        }
+        mDamageTakenDuringTurn +=amount;
+        mRowBottom[1].getCard().setValue(Math.max(0, mRowBottom[1].getCard().getValue() - amount));
+        animateCardSuffer(LOC_HERO);
     }
 
     /**
