@@ -121,12 +121,13 @@ public class Deck {
                         }
                         break;
                 }
-                if (i > 3 && cards.get(i).getType() != Card.Type.MONSTER && cards.get(i - 1).getType() != Card.Type.MONSTER && cards.get(i - 2).getType() != Card.Type.MONSTER && cards.get(i - 3).getType() != Card.Type.MONSTER && cards.get(i - 4).getType() != Card.Type.MONSTER) {
+                if (i > 2 && cards.get(i).getType() != Card.Type.MONSTER && cards.get(i - 1).getType() != Card.Type.MONSTER && cards.get(i - 2).getType() != Card.Type.MONSTER && cards.get(i - 3).getType() != Card.Type.MONSTER) {
                     deckOk = false;
                     break;
                 }
             }
         } while (!deckOk);
+        Collections.reverse(cards);
         //Finalize
         deck.cards = cards;
         return deck;
