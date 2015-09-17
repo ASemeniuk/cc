@@ -35,7 +35,7 @@ public class Card {
         BLEED("Collect 1 gold for each point of damage taken in one turn"),
         SUICIDE("Redraw 4 random monster cards"),
         BLOODPACT("Swap the player health with a monster card"),
-        //BOUNTY("Collect 3 gold for each monster slain bigger or equal to 10"),
+        BOUNTY("Collect 3 gold for each monster slain bigger or equal to 10"),
         EQUALIZE("Give the adjacent cards the value of the selected dungeon card"),
         DIGGER("Shuffle 3 randomly selected removed cards back into the deck"),
         MIRROR("Duplicate a dungeon card and shuffle it back into the deck");
@@ -76,6 +76,9 @@ public class Card {
 
     public void setValue(int value) {
         this.value = value;
+        if (type == Type.MONSTER && value >= 10) {
+           setAbility(Ability.BOUNTY);
+        }
     }
 
     public boolean isActive() {
@@ -108,11 +111,12 @@ public class Card {
 
     public void setAbility(Ability ability) {
         this.ability = ability;
-        if (ability != null) {
+        if (type == Type.ABILITY && ability != null) {
             this.setName(this.getAbility().name().toUpperCase());
             switch (this.getAbility()) {
                 case LEECH:
                 case LASH:
+                case BOUNTY:
                     this.setValue(3);
                     break;
                 case FORTIFY:
@@ -189,11 +193,11 @@ public class Card {
     public static Card clone(Card source) {
         Card card = new Card();
         card.setType(source.getType());
+        card.setAbility(source.getAbility());
+        card.setName(source.getName());
         card.setValue(source.getValue());
         card.setActive(source.isActive());
         card.setWounded(source.isWounded());
-        card.setName(source.getName());
-        card.setAbility(source.getAbility());
         return card;
     }
 

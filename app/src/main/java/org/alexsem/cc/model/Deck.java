@@ -2,10 +2,8 @@ package org.alexsem.cc.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class Deck {
@@ -14,46 +12,6 @@ public class Deck {
 
     public int size() {
         return cards.size();
-    }
-
-    /**
-     * Generate completely new deck
-     * @return New deck
-     */
-    @Deprecated
-    public static Deck generateRandom() {
-        Deck deck = new Deck();
-        List<Card> cards = new ArrayList<>();
-        Map<Card.Type, Integer> limits = new HashMap<>();
-        limits.put(Card.Type.MONSTER, 19);
-        limits.put(Card.Type.WEAPON, 6);
-        limits.put(Card.Type.SHIELD, 6);
-        limits.put(Card.Type.POTION, 9);
-        limits.put(Card.Type.COIN, 9);
-        limits.put(Card.Type.ABILITY, 5);
-        Set<Card.Ability> specials = new HashSet<>();
-        for (int i = 0; i < 54; i++) {
-            boolean ok = false;
-            do {
-                Card card = Card.random();
-                Card.Type type = card.getType();
-                if (limits.get(type) > 0) {
-                    if (type == Card.Type.ABILITY) {
-                        if (!specials.contains(card.getAbility())) { //New special card
-                            specials.add(card.getAbility());
-                        } else { //Already added
-                            continue;
-                        }
-                    }
-                    cards.add(card);
-                    limits.put(type, limits.get(type) - 1);
-                    ok = true;
-                }
-            } while (!ok);
-        }
-        Collections.shuffle(cards);
-        deck.cards = cards;
-        return deck;
     }
 
     /**
