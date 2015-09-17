@@ -33,7 +33,7 @@ public class Card {
         TRAP("Trap a dungeon card. This card does not need to be played"),
         LIFE("Raise the player life by 5. If it exceeds 13 raise the maximum life"),
         BLEED("Collect 1 gold for each point of damage taken in one turn"),
-        //SUICIDE("Redraw 4 random monster cards"),
+        SUICIDE("Redraw 4 random monster cards"),
         BLOODPACT("Swap the player health with a monster card"),
         //BOUNTY("Collect 3 gold for each monster slain bigger or equal to 10"),
         EQUALIZE("Give the adjacent cards the value of the selected dungeon card"),
@@ -152,7 +152,7 @@ public class Card {
         card.setActive(true);
         card.setWounded(false);
         if (type == Type.MONSTER) {
-            card.setName(mobNames[value]);
+            card.setName(mobNames[card.getValue()]);
         } else {
             card.setName("");
         }
@@ -203,7 +203,7 @@ public class Card {
      * @return respective value or 0
      */
     public static int restoreMonsterValue(String name) {
-        for (int i = 0; i < mobNames.length;i++) {
+        for (int i = 0; i < mobNames.length; i++) {
             if (name.equals(mobNames[i])) {
                 return i;
             }

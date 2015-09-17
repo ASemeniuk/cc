@@ -157,7 +157,7 @@ public class BoardView extends View {
         invalidate();
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.STEAL);
+//        card.setAbility(Card.Ability.SUICIDE);
 //        mRowTop[0].setCard(card);
     }
 
@@ -406,6 +406,7 @@ public class BoardView extends View {
                         case LIFE:
                         case DIGGER:
                         case BLEED:
+                        case SUICIDE:
                             return (dstCard.getType() == Card.Type.HERO && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case BETRAYAL:
                             return (dstCard.getType() == Card.Type.MONSTER && destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
@@ -585,7 +586,7 @@ public class BoardView extends View {
                 } else { //Actually use
                     switch (srcCard.getAbility()) {
                         case SAP:
-                            animateReceiveCard(dstCard, destination);
+                            animateReceiveCard(dstCard, destination, true);
                             destroyCard(dstPosition);
                             destroyCard(srcPosition);
                             break;
@@ -632,7 +633,7 @@ public class BoardView extends View {
                         case VANISH:
                             for (int i = 0; i < 4; i++) {
                                 if (mRowTop[i].getCard() != null) {
-                                    animateReceiveCard(mRowTop[i].getCard(), i);
+                                    animateReceiveCard(mRowTop[i].getCard(), i, true);
                                     destroyCard(mRowTop[i]);
                                 }
                             }
@@ -677,7 +678,7 @@ public class BoardView extends View {
                             destroyCard(srcPosition);
                             break;
                         case EXCHANGE:
-                            animateReceiveCard(dstCard, destination);
+                            animateReceiveCard(dstCard, destination, true);
                             destroyCard(dstPosition);
                             Card exchangedCard = mDeck.deal(mDeck.find(Card.Type.ABILITY));
                             if (exchangedCard != null) {
@@ -842,7 +843,7 @@ public class BoardView extends View {
                             Card mirroredCard = Card.clone(dstCard);
                             mirroredCard.setActive(true);
                             mirroredCard.setWounded(false);
-                            animateReceiveCard(mirroredCard, destination);
+                            animateReceiveCard(mirroredCard, destination, true);
                             destroyCard(srcPosition);
                             break;
                         case BLOODPACT:
@@ -914,12 +915,22 @@ public class BoardView extends View {
                                 if (resedCard.getType() == Card.Type.MONSTER) {
                                     resedCard.setValue(Card.restoreMonsterValue(resedCard.getName()));
                                 }
-                                animateReceiveCard(resedCard, count + 10);
+                                animateReceiveCard(resedCard, count + 10, true);
                                 mGraveyard.remove(random);
                             }
                             break;
                         case BLEED:
                             mCoins += mDamageTakenDuringTurn;
+                            destroyCard(srcPosition);
+                            break;
+                        case SUICIDE:
+                            for (int i = 0; i < mRowTop.length; i++) {
+                                if (mRowTop[i].getCard() != null) {
+                                    animateReceiveCard(mRowTop[i].getCard(), i, false);
+                                    destroyCard(mRowTop[i]);
+                                }
+                                animateDealCard(Card.getOther(Card.Type.MONSTER, (int) (Math.random() * 9 + 2)), i);
+                            }
                             destroyCard(srcPosition);
                             break;
                     }
@@ -1097,7 +1108,7 @@ public class BoardView extends View {
     //----------------------------------------------------------------------------------------------
 
     private enum CardState {
-        REGULAR, TOUCHED, RECEIVING, MOVED, INACTIVE
+        REGULAR, TOUCHED, RECEIVING, MOVED
     }
 
     /**
@@ -1614,14 +1625,14 @@ public class BoardView extends View {
      * @param card   Card to receive
      * @param source Target location
      */
-    private void animateReceiveCard(Card card, int source) {
+    private void animateReceiveCard(Card card, int source, boolean returnToDeck) {
         Position position = (source < 10 ? mRowTop[source] : mRowBottom[source - 10]);
         if (card != null) { //Has card to deal
             mReceiveAnimationCount++;
             if (source < 10) {
-                mReceiveAnimationTop[source] = new DeckReceiveAnimation(card, position);
+                mReceiveAnimationTop[source] = new DeckReceiveAnimation(card, position, returnToDeck);
             } else {
-                mReceiveAnimationBottom[source - 10] = new DeckReceiveAnimation(card, position);
+                mReceiveAnimationBottom[source - 10] = new DeckReceiveAnimation(card, position, returnToDeck);
             }
         }
         invalidate();
@@ -1869,6 +1880,7 @@ public class BoardView extends View {
 
         private Card card;
         private Position position;
+        private boolean returnToDeck;
 
         private float curRelX;
         private float curRelY;
@@ -1880,9 +1892,10 @@ public class BoardView extends View {
 
         private int ticksLeft;
 
-        public DeckReceiveAnimation(Card card, Position position) {
+        public DeckReceiveAnimation(Card card, Position position, boolean returnToDeck) {
             this.card = card;
             this.position = position;
+            this.returnToDeck = returnToDeck;
             RectF rect = position.getRect();
             curRelX = mDeckPosition.left - rect.left;
             curRelY = mDeckPosition.top - rect.top;
@@ -1919,7 +1932,9 @@ public class BoardView extends View {
 
         @Override
         public void finish() {
-            mDeck.receive(this.card);
+            if (returnToDeck) {
+                mDeck.receive(this.card);
+            }
         }
 
     }
