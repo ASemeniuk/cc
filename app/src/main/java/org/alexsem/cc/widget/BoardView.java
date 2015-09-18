@@ -159,14 +159,14 @@ public class BoardView extends View {
         invalidate();
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.BOUNTY);
+//        card.setAbility(Card.Ability.BASH);
 //        mRowTop[0].setCard(card);
-        mRowTop[0].setCard(Card.getOther(Card.Type.MONSTER, 7));
-        mRowTop[1].setCard(Card.getOther(Card.Type.MONSTER, 7));
-        while (mDeck.size() > 0) {
-            mDeck.deal();
-        }
-        isNeedToReflectDamage = true;
+//        mRowTop[0].setCard(Card.getOther(Card.Type.MONSTER, 7));
+//        mRowTop[1].setCard(Card.getOther(Card.Type.MONSTER, 7));
+//        while (mDeck.size() > 0) {
+//            mDeck.deal();
+//        }
+//        isNeedToReflectDamage = true;
     }
 
     /**
@@ -335,7 +335,7 @@ public class BoardView extends View {
                 case ABILITY:
                     return true;
                 case SHIELD:
-                    return location != LOC_LEFT_HAND && location != LOC_RIGHT_HAND;
+                    return (location != LOC_LEFT_HAND && location != LOC_RIGHT_HAND) || card.getAbility() == Card.Ability.BASH;
                 case POTION:
                 case COIN:
                     return card.isActive();
@@ -371,7 +371,7 @@ public class BoardView extends View {
                 }
             case SHIELD:
                 if (dstCard != null) {
-                    return false;
+                    return (srcCard.getAbility() == Card.Ability.BASH && dstCard.getType() == Card.Type.MONSTER && destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                 } else {
                     return (source < 10 && destination == LOC_BACKPACK) || ((source < 10 || source == LOC_BACKPACK) && (destination == LOC_LEFT_HAND || destination == LOC_RIGHT_HAND));
                 }
@@ -408,11 +408,9 @@ public class BoardView extends View {
                         case STEAL:
                             return (dstCard.getType() == Card.Type.HERO && mDeck.size() > 0 && mRowBottom[3].getCard() == null && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case BASH:
-                            return (destination < 10 && dstCard.getType() == Card.Type.MONSTER &&
-                                    ((source == LOC_LEFT_HAND && mRowBottom[2].getCard() != null && mRowBottom[2].getCard().getType() == Card.Type.SHIELD) ||
-                                            (source == LOC_RIGHT_HAND && mRowBottom[0].getCard() != null && mRowBottom[0].getCard().getType() == Card.Type.SHIELD)));
                         case REFLECT:
                         case REVIVE:
+                        case FRENZY:
                         case LUCKY:
                         case LIFE:
                         case BLEED:
@@ -422,10 +420,6 @@ public class BoardView extends View {
                             return (dstCard.getType() == Card.Type.HERO && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case BETRAYAL:
                             return (dstCard.getType() == Card.Type.MONSTER && destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
-                        case FRENZY:
-                            return (destination < 10 && dstCard.getType() == Card.Type.MONSTER &&
-                                    ((source == LOC_LEFT_HAND && mRowBottom[2].getCard() != null && mRowBottom[2].getCard().getType() == Card.Type.WEAPON) ||
-                                            (source == LOC_RIGHT_HAND && mRowBottom[0].getCard() != null && mRowBottom[0].getCard().getType() == Card.Type.WEAPON)));
                         case TRADE:
                             return (dstCard.getType() != Card.Type.MONSTER && dstCard.getType() != Card.Type.HERO && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case SWAP:
@@ -532,15 +526,46 @@ public class BoardView extends View {
                     } else { //Mob will be defeated
                         animateCardCrack(dstCard, destination);
                     }
-                    destroyCard(srcPosition);
+                    if (srcCard.getAbility() == Card.Ability.FRENZY) {
+                        srcCard.setAbility(null);
+                        animateCardSuffer(source);
+                        float distance = (float) Math.sqrt(mDragRelX * mDragRelX + mDragRelY * mDragRelY);
+                        mDragReturnTicks = (int) (distance / mDragReturnSpeed);
+                        mDragSpeedX = mDragRelX / mDragReturnTicks;
+                        mDragSpeedY = mDragRelY / mDragReturnTicks;
+                    } else {
+                        destroyCard(srcPosition);
+                    }
                 } else { //Pack/Equip
                     dstPosition.setCard(srcCard);
                     destroyCard(srcPosition);
                 }
                 break;
             case SHIELD:
-                dstPosition.setCard(srcCard);
-                destroyCard(srcPosition);
+                if (dstCard != null) {
+                    if (srcCard.getAbility() == Card.Ability.BASH && dstCard.getType() == Card.Type.MONSTER) { //Bash
+                        if (dstCard.getValue() > srcCard.getValue()) { //Mob can take damage (and more)
+                            dstCard.setValue(dstCard.getValue() - srcCard.getValue());
+                            animateCardSuffer(destination);
+                            dstCard.setWounded(true);
+                        } else { //Mob will be defeated
+                            animateCardCrack(dstCard, destination);
+                        }
+                        if (srcCard.getValue() > 5) {
+                            srcCard.setValue(srcCard.getValue() - 5);
+                            animateCardSuffer(source);
+                            float distance = (float) Math.sqrt(mDragRelX * mDragRelX + mDragRelY * mDragRelY);
+                            mDragReturnTicks = (int) (distance / mDragReturnSpeed);
+                            mDragSpeedX = mDragRelX / mDragReturnTicks;
+                            mDragSpeedY = mDragRelY / mDragReturnTicks;
+                        } else {
+                            destroyCard(srcPosition);
+                        }
+                    }
+                } else { //Pack/Equip
+                    dstPosition.setCard(srcCard);
+                    destroyCard(srcPosition);
+                }
                 break;
             case POTION:
                 dstPosition.setCard(srcCard);
@@ -656,19 +681,11 @@ public class BoardView extends View {
                             destroyCard(srcPosition);
                             break;
                         case BASH:
-                            Position shieldPosition = mRowBottom[source == LOC_LEFT_HAND ? 2 : 0];
-                            if (dstCard.getValue() > shieldPosition.getCard().getValue()) { //Mob can take damage (and more)
-                                dstCard.setValue(dstCard.getValue() - shieldPosition.getCard().getValue());
-                                animateCardSuffer(destination);
-                                dstCard.setWounded(true);
-                            } else { //Mob will be defeated
-                                animateCardCrack(dstCard, destination);
-                            }
-                            if (shieldPosition.getCard().getValue() > 5) { //Shield can take bash damage
-                                shieldPosition.getCard().setValue(shieldPosition.getCard().getValue() - 5);
-                                animateCardSuffer(source == LOC_LEFT_HAND ? LOC_RIGHT_HAND : LOC_LEFT_HAND);
-                            } else { //Shield is too weak
-                                animateCardCrack(shieldPosition.getCard(), source == LOC_LEFT_HAND ? LOC_RIGHT_HAND : LOC_LEFT_HAND);
+                            int shieldLocation = source == LOC_LEFT_HAND ? LOC_RIGHT_HAND : LOC_LEFT_HAND;
+                            Card shieldCard = mRowBottom[shieldLocation - 10].getCard();
+                            if (shieldCard != null && shieldCard.getType() == Card.Type.SHIELD) {
+                                shieldCard.setAbility(Card.Ability.BASH);
+                                animateCardImprove(shieldLocation);
                             }
                             destroyCard(srcPosition);
                             break;
@@ -698,15 +715,12 @@ public class BoardView extends View {
                             destroyCard(srcPosition);
                             break;
                         case FRENZY:
-                            Position swordPosition = mRowBottom[source == LOC_LEFT_HAND ? 2 : 0];
-                            if (dstCard.getValue() > swordPosition.getCard().getValue()) { //Mob can take damage (and more)
-                                dstCard.setValue(dstCard.getValue() - swordPosition.getCard().getValue());
-                                animateCardSuffer(destination);
-                                dstCard.setWounded(true);
-                            } else { //Mob will be defeated
-                                animateCardCrack(dstCard, destination);
+                            int swordLocation = source == LOC_LEFT_HAND ? LOC_RIGHT_HAND : LOC_LEFT_HAND;
+                            Card swordCard = mRowBottom[swordLocation - 10].getCard();
+                            if (swordCard != null && swordCard.getType() == Card.Type.WEAPON) {
+                                swordCard.setAbility(Card.Ability.FRENZY);
+                                animateCardImprove(swordLocation);
                             }
-                            animateCardImprove(source == LOC_LEFT_HAND ? LOC_RIGHT_HAND : LOC_LEFT_HAND);
                             destroyCard(srcPosition);
                             break;
                         case LUCKY:
@@ -1132,18 +1146,16 @@ public class BoardView extends View {
                     } else if (value >= 0) {
                         canvas.drawArc(new RectF(cx - radius * 4 / 6, cy + radius * 7 / 6, cx + radius * 4 / 6, cy + radius * 4 / 3 + radius * (3 - value) / 6), 180, 180, false, mPaint);
                     }
-
-
                     mPaint.setStyle(Paint.Style.FILL);
                     canvas.drawCircle(cx - radius * 2 / 3, cy - radius / 2, radius / 4, mPaint);
                     canvas.drawCircle(cx + radius * 2 / 3, cy - radius / 2, radius / 4, mPaint);
                     mTextPaint.setColor(COLOR_EMPH);
                     text = String.format("%d/%d", value, Card.HERO_MAX + mHealthAddition);
                     canvas.drawText(text, rect.right - mFontPadding - mTextPaint.measureText(text), rect.top + mFontPadding - mTextPaint.ascent(), mTextPaint);
-                    text = String.valueOf(mCoins);
+                    text = String.format("\u2666%d", mCoins);
                     canvas.drawText(text, rect.left + mFontPadding, rect.bottom - mFontSize - mFontPadding - mTextPaint.ascent(), mTextPaint);
                     mTextPaint.setColor(COLOR_SPECIAL);
-                    text = String.format("%s%s", isNeedToReflectDamage ? "\u2600" : "", isNeedToReviveHero ? "\u2665" : "");
+                    text = String.format("%s%s", isNeedToReflectDamage ? "\u2746" : "", isNeedToReviveHero ? "\u2665" : "");
                     canvas.drawText(text, rect.right - mFontPadding - mTextPaint.measureText(text), rect.bottom - mFontSize - mFontPadding - mTextPaint.ascent(), mTextPaint);
                     break;
                 case MONSTER:
@@ -1185,6 +1197,11 @@ public class BoardView extends View {
                     mTextPaint.setColor(COLOR_REGULAR);
                     text = String.valueOf(card.getValue());
                     canvas.drawText(text, rect.left + mFontPadding, rect.top + mFontPadding - mTextPaint.ascent(), mTextPaint);
+                    if (card.getAbility() == Card.Ability.FRENZY) {
+                        mTextPaint.setColor(COLOR_SPECIAL);
+                        text = "\u2605";
+                        canvas.drawText(text, rect.right - mFontPadding - mTextPaint.measureText(text), rect.bottom - mFontSize - mFontPadding - mTextPaint.ascent(), mTextPaint);
+                    }
                 }
                 break;
                 case SHIELD: {
@@ -1204,6 +1221,11 @@ public class BoardView extends View {
                     mTextPaint.setColor(COLOR_REGULAR);
                     text = String.valueOf(card.getValue());
                     canvas.drawText(text, rect.left + mFontPadding, rect.top + mFontPadding - mTextPaint.ascent(), mTextPaint);
+                    if (card.getAbility() == Card.Ability.BASH) {
+                        mTextPaint.setColor(COLOR_SPECIAL);
+                        text = "\u2725";
+                        canvas.drawText(text, rect.right - mFontPadding - mTextPaint.measureText(text), rect.bottom - mFontSize - mFontPadding - mTextPaint.ascent(), mTextPaint);
+                    }
                 }
                 break;
                 case POTION: {
