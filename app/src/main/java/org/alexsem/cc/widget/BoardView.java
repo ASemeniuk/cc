@@ -397,11 +397,10 @@ public class BoardView extends View {
                             return (dstCard.getType() == Card.Type.HERO && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case LEECH:
                         case SACRIFICE:
+                        case KILLER:
                             return (dstCard.getType() == Card.Type.MONSTER && destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case POTIONIZE:
                             return ((dstCard.getType() == Card.Type.COIN || dstCard.getType() == Card.Type.POTION || dstCard.getType() == Card.Type.WEAPON || dstCard.getType() == Card.Type.SHIELD) && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
-                        case KILLER:
-                            return (dstCard.getType() == Card.Type.MONSTER && destination < 10 && dstCard.isWounded() && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case EXCHANGE:
                         case TRAP:
                             return (destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
@@ -641,7 +640,9 @@ public class BoardView extends View {
                             destroyCard(srcPosition);
                             break;
                         case KILLER:
-                            animateCardCrack(dstCard, destination);
+                            if (dstCard.isWounded()) {
+                                animateCardCrack(dstCard, destination);
+                            }
                             destroyCard(srcPosition);
                             break;
                         case EXCHANGE:
@@ -1164,15 +1165,27 @@ public class BoardView extends View {
                     mPaint.setStrokeWidth(STROKE_WIDTH);
                     canvas.drawCircle(cx, cy, radius * 2, mPaint);
                     mPaint.setColor(COLOR_BG_CARD);
-                    canvas.drawCircle(cx - radius * 2 / 3, cy - radius / 2, radius / 3, mPaint);
-                    canvas.drawCircle(cx + radius * 2 / 3, cy - radius / 2, radius / 3, mPaint);
-                    mPaint.setStyle(Paint.Style.STROKE);
-                    canvas.drawLine(cx - radius / 4, cy - radius * 3 / 4, cx - radius, cy - radius, mPaint);
-                    canvas.drawLine(cx + radius / 4, cy - radius * 3 / 4, cx + radius, cy - radius, mPaint);
+                    if (card.isWounded()) {
+                        canvas.drawCircle(cx - radius * 2 / 3, cy - radius / 3, radius / 3, mPaint);
+                        canvas.drawCircle(cx + radius * 2 / 3, cy - radius / 3, radius / 3, mPaint);
+                        mPaint.setStyle(Paint.Style.STROKE);
+                        canvas.drawLine(cx - radius / 4, cy - radius * 3 / 4, cx - radius, cy - radius * 2 / 3, mPaint);
+                        canvas.drawLine(cx + radius / 4, cy - radius * 3 / 4, cx + radius, cy - radius * 2 / 3, mPaint);
+                        canvas.drawLine(cx, cy - radius * 2, cx - radius / 2, cy - radius * 3 / 2, mPaint);
+                        canvas.drawLine(cx - radius / 2, cy - radius * 3 / 2, cx + radius * 4 / 7, cy - radius * 13 / 8, mPaint);
+                        canvas.drawLine(cx + radius * 4 / 7, cy - radius * 13 / 8, cx, cy - radius * 7 / 6, mPaint);
+                    } else {
+                        canvas.drawCircle(cx - radius * 2 / 3, cy - radius / 2, radius / 3, mPaint);
+                        canvas.drawCircle(cx + radius * 2 / 3, cy - radius / 2, radius / 3, mPaint);
+                        mPaint.setStyle(Paint.Style.STROKE);
+                        canvas.drawLine(cx - radius / 4, cy - radius * 3 / 4, cx - radius, cy - radius, mPaint);
+                        canvas.drawLine(cx + radius / 4, cy - radius * 3 / 4, cx + radius, cy - radius, mPaint);
+                    }
                     canvas.drawLine(cx - radius * 2 / 3, cy + radius, cx - radius / 3, cy + radius * 3 / 4, mPaint);
                     canvas.drawLine(cx - radius / 3, cy + radius * 3 / 4, cx, cy + radius, mPaint);
                     canvas.drawLine(cx, cy + radius, cx + radius / 3, cy + radius * 3 / 4, mPaint);
                     canvas.drawLine(cx + radius / 3, cy + radius * 3 / 4, cx + radius * 2 / 3, cy + radius, mPaint);
+
                     mTextPaint.setColor(COLOR_REGULAR);
                     text = String.valueOf(card.getValue());
                     canvas.drawText(text, rect.right - mFontPadding - mTextPaint.measureText(text), rect.top + mFontPadding - mTextPaint.ascent(), mTextPaint);
