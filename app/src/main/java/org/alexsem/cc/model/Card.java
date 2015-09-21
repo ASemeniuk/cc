@@ -77,7 +77,7 @@ public class Card {
     public void setValue(int value) {
         this.value = value;
         if (type == Type.MONSTER && value >= 10) {
-           setAbility(Ability.BOUNTY);
+            setAbility(Ability.BOUNTY);
         }
     }
 
@@ -164,28 +164,22 @@ public class Card {
     }
 
     public static Card random() {
-        Card card = new Card();
-        card.setType(types[(int) (Math.random() * (types.length - 1)) + 1]);
-        switch (card.getType()) {
+        Type type = types[(int) (Math.random() * (types.length - 1)) + 1];
+        switch (type) {
+            case HERO:
+                return getHero();
             case MONSTER:
-                card.setValue((int) (Math.random() * 9) + 2);
-                card.setName(mobNames[card.getValue()]);
-                break;
             case POTION:
             case COIN:
-                card.setValue((int) (Math.random() * 9) + 2);
-                break;
+                return getOther(type, (int) (Math.random() * 9) + 2);
             case WEAPON:
             case SHIELD:
-                card.setValue((int) (Math.random() * 6) + 2);
-                break;
+                return getOther(type, (int) (Math.random() * 6) + 2);
             case ABILITY:
-                card = getSpecial();
-                break;
+                return getSpecial();
+            default:
+                return null;
         }
-        card.setActive(true);
-        card.setWounded(false);
-        return card;
     }
 
     /**
