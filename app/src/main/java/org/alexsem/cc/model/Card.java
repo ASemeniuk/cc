@@ -168,6 +168,9 @@ public class Card {
         card.setType(types[(int) (Math.random() * (types.length - 1)) + 1]);
         switch (card.getType()) {
             case MONSTER:
+                card.setValue((int) (Math.random() * 9) + 2);
+                card.setName(mobNames[card.getValue()]);
+                break;
             case POTION:
             case COIN:
                 card.setValue((int) (Math.random() * 9) + 2);

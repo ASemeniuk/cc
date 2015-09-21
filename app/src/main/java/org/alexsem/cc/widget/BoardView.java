@@ -1266,7 +1266,7 @@ public class BoardView extends View {
                     float rad = radius * 3 / (2 * (float) Math.sqrt(2));
                     canvas.drawLine(cx + rad, cy - rad, cx - rad, cy + rad, mPaint);
                     mTextPaint.setColor(COLOR_EMPH);
-                    text = String.valueOf(card.getValue());
+                    text = String.format("%d", card.getValue());
                     canvas.drawText(text, rect.left + mFontPadding, rect.bottom - mFontSize - mFontPadding - mTextPaint.ascent(), mTextPaint);
                 }
                 break;
