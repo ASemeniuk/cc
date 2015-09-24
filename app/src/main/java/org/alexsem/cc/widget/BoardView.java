@@ -21,7 +21,9 @@ import org.alexsem.cc.model.Card;
 import org.alexsem.cc.model.Deck;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class BoardView extends View {
 
@@ -159,14 +161,14 @@ public class BoardView extends View {
         invalidate();
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.BASH);
+//        card.setAbility(Card.Ability.LUCKY);
 //        mRowTop[0].setCard(card);
 //        mRowTop[0].setCard(Card.getOther(Card.Type.MONSTER, 7));
 //        mRowTop[1].setCard(Card.getOther(Card.Type.MONSTER, 7));
 //        while (mDeck.size() > 0) {
 //            mDeck.deal();
 //        }
-//        isNeedToReflectDamage = true;
+//        isNeedToReviveHero = true;
     }
 
     /**
@@ -616,12 +618,14 @@ public class BoardView extends View {
                             break;
                         case SACRIFICE:
                             int sacrificed = Card.HERO_MAX + mHealthAddition - hero.getValue();
-                            if (dstCard.getValue() > sacrificed) { //Mob can take damage (and more)
-                                dstCard.setValue(dstCard.getValue() - sacrificed);
-                                animateCardSuffer(destination);
-                                dstCard.setWounded(true);
-                            } else { //Mob will be defeated
-                                animateCardCrack(dstCard, destination);
+                            if (sacrificed > 0) {
+                                if (dstCard.getValue() > sacrificed) { //Mob can take damage (and more)
+                                    dstCard.setValue(dstCard.getValue() - sacrificed);
+                                    animateCardSuffer(destination);
+                                    dstCard.setWounded(true);
+                                } else { //Mob will be defeated
+                                    animateCardCrack(dstCard, destination);
+                                }
                             }
                             destroyCard(srcPosition);
                             break;
@@ -726,6 +730,7 @@ public class BoardView extends View {
                             break;
                         case LUCKY:
                             int randomCount = 2 - (int) (Math.random() * 3) / 2;
+                            Set<Card> cardSet = new HashSet<>();
                             for (int i = 0; i < randomCount; i++) {
                                 int randomTarget;
                                 Card randomCard;
@@ -733,10 +738,11 @@ public class BoardView extends View {
                                     randomTarget = (int) (Math.random() * 4);
                                     randomCard = mRowTop[(randomTarget)].getCard();
                                 } while (randomCard == null);
+                                cardSet.add(randomCard);
                                 animateCardCrack(randomCard, randomTarget);
                                 boolean cardsLeft = false;
                                 for (Position p : mRowTop) {
-                                    if (p.getCard() != null) {
+                                    if (p.getCard() != null && !cardSet.contains(p.getCard())) {
                                         cardsLeft = true;
                                         break;
                                     }
@@ -996,6 +1002,7 @@ public class BoardView extends View {
                 hero.setValue(1);
                 animateCardImprove(LOC_HERO);
                 isNeedToReviveHero = false;
+                return;
             } else { //Actual death
                 animateHeroVanish();
                 return;
