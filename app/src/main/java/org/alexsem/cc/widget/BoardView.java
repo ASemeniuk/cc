@@ -11,7 +11,6 @@ import android.graphics.Region;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.text.TextPaint;
-import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
@@ -27,11 +26,12 @@ import java.util.Set;
 
 public class BoardView extends View {
 
-    private static final int COLOR_BG_CARD = 0xffc0c0c0;
-    private static final int COLOR_BG_TINT = 0xa0000000;
-    private static final int COLOR_REGULAR = 0xff000000;
-    private static final int COLOR_EMPH = 0xff922b22;
-    private static final int COLOR_SPECIAL = 0xff2cc5c6;
+    private final int COLOR_BG_MAIN = 0xffededed;
+    private final int COLOR_BG_CARD = 0xffc0c0c0;
+    private final int COLOR_BG_TINT = 0xa0000000;
+    private final int COLOR_REGULAR = 0xff000000;
+    private final int COLOR_EMPH = 0xff922b22;
+    private final int COLOR_SPECIAL = 0xff2cc5c6;
 
     private final int LOC_LEFT_HAND = 10;
     private final int LOC_HERO = 11;
@@ -110,9 +110,10 @@ public class BoardView extends View {
         }
     }
 
-    public BoardView(Context context, AttributeSet attrs) {
-        super(context, attrs);
+    public BoardView(Context context) {
+        super(context);
         checkHardwareAcceleration();
+        setBackgroundColor(COLOR_BG_MAIN);
         mPaint = new Paint();
         mPaint.setAntiAlias(true);
         mTextPaint = new TextPaint(new Paint());
