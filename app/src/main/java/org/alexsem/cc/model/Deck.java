@@ -69,7 +69,7 @@ public class Deck {
                         }
                         break;
                     case ABILITY:
-                        if (i < 4) {
+                        if (i <= 4 || i > cards.size() - 4) {
                             deckOk = false;
                             break quick;
                         }

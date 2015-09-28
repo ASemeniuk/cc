@@ -162,7 +162,7 @@ public class BoardView extends View {
         invalidate();
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.LUCKY);
+//        card.setAbility(Card.Ability.DEVOUR);
 //        mRowTop[0].setCard(card);
 //        mRowTop[0].setCard(Card.getOther(Card.Type.MONSTER, 7));
 //        mRowTop[1].setCard(Card.getOther(Card.Type.MONSTER, 7));
@@ -631,17 +631,13 @@ public class BoardView extends View {
                             destroyCard(srcPosition);
                             break;
                         case POTIONIZE:
-                            dstCard.setType(Card.Type.POTION);
-                            dstCard.setValue((int) (Math.random() * 9 + 2));
+                            Card potionCard = Card.clone(dstCard);
+                            potionCard.setType(Card.Type.POTION);
+                            potionCard.setValue((int) (Math.random() * 9 + 2));
                             if (destination >= 10) { //Bottom row
-                                dstCard.setActive(true);
+                                potionCard.setActive(true);
                             }
-                            animateCardImprove(destination);
-                            if (destination == LOC_LEFT_HAND || destination == LOC_RIGHT_HAND) { //Actually use
-                                animateCardDisable(destination);
-                                hero.setValue(Math.min(Card.HERO_MAX + mHealthAddition, hero.getValue() + dstCard.getValue()));
-                                animateCardImprove(LOC_HERO);
-                            }
+                            animateCardTransform(destination, potionCard);
                             destroyCard(srcPosition);
                             break;
                         case KILLER:
@@ -795,20 +791,8 @@ public class BoardView extends View {
                             Card randomCard = Card.random();
                             if (destination < 10) {
                                 randomCard.setActive(mRowTop[destination].getCard().isActive());
-                                mRowTop[destination].setCard(randomCard);
-                            } else {
-                                mRowBottom[destination - 10].setCard(randomCard);
                             }
-                            if (randomCard.getType() == Card.Type.POTION && (destination == LOC_LEFT_HAND || destination == LOC_RIGHT_HAND)) {
-                                animateCardDisable(destination);
-                                hero.setValue(Math.min(Card.HERO_MAX + mHealthAddition, hero.getValue() + randomCard.getValue()));
-                                animateCardImprove(LOC_HERO);
-                            }
-                            if (randomCard.getType() == Card.Type.COIN && (destination == LOC_LEFT_HAND || destination == LOC_RIGHT_HAND || destination == LOC_BACKPACK)) {
-                                animateCardDisable(destination);
-                                mCoins += randomCard.getValue();
-                            }
-                            animateCardImprove(destination);
+                            animateCardTransform(destination, randomCard);
                             destroyCard(srcPosition);
                             break;
                         case FORTIFY:
@@ -817,34 +801,28 @@ public class BoardView extends View {
                             destroyCard(srcPosition);
                             break;
                         case MIDAS:
+                            Card coinCard = Card.clone(dstCard);
                             switch (dstCard.getType()) {
                                 case MONSTER:
-                                    dstCard.setValue(dstCard.getValue() / 2);
+                                    coinCard.setValue(dstCard.getValue() / 2);
                                     break;
                                 case ABILITY:
-                                    dstCard.setValue(dstCard.getValue() * 2);
+                                    coinCard.setValue(dstCard.getValue() * 2);
                                     break;
                             }
-                            dstCard.setType(Card.Type.COIN);
+                            coinCard.setType(Card.Type.COIN);
                             if (destination >= 10) { //Bottom row
-                                dstCard.setActive(true);
+                                coinCard.setActive(true);
                             }
-                            animateCardImprove(destination);
-                            if (destination == LOC_LEFT_HAND || destination == LOC_RIGHT_HAND || destination == LOC_BACKPACK) { //Actually use
-                                animateCardDisable(destination);
-                                mCoins += dstCard.getValue();
-                            }
+                            animateCardTransform(destination, coinCard);
                             destroyCard(srcPosition);
                             break;
                         case DEVOUR:
                             Card specialCard = Card.getSpecial();
                             if (destination < 10) {
                                 specialCard.setActive(mRowTop[destination].getCard().isActive());
-                                mRowTop[destination].setCard(specialCard);
-                            } else {
-                                mRowBottom[destination - 10].setCard(specialCard);
                             }
-                            animateCardImprove(destination);
+                            animateCardTransform(destination, specialCard);
                             destroyCard(srcPosition);
                             break;
                         case TRAP:
@@ -1107,7 +1085,7 @@ public class BoardView extends View {
     //----------------------------------------------------------------------------------------------
 
     private enum CardState {
-        REGULAR, TOUCHED, RECEIVING, MOVED
+        REGULAR, TOUCHED, RECEIVING, MOVED, SHARP
     }
 
     /**
@@ -1125,7 +1103,11 @@ public class BoardView extends View {
             mPaint.setStrokeWidth(0);
             mPaint.setStyle(Paint.Style.FILL);
             mPaint.setColor(COLOR_BG_CARD);
-            canvas.drawRoundRect(rect, radius, radius, mPaint);
+            if (state == CardState.SHARP) {
+                canvas.drawRect(rect, mPaint);
+            } else {
+                canvas.drawRoundRect(rect, radius, radius, mPaint);
+            }
             mTextPaint.setTextSize(mFontSize);
             String text;
             switch (card.getType()) {
@@ -1298,11 +1280,12 @@ public class BoardView extends View {
             }
         }
 
-        mPaint.setStrokeWidth(STROKE_WIDTH);
-        mPaint.setStyle(Paint.Style.STROKE);
-        mPaint.setColor(state == CardState.TOUCHED ? COLOR_EMPH : state == CardState.RECEIVING ? COLOR_SPECIAL : COLOR_REGULAR);
-        canvas.drawRoundRect(rect, radius, radius, mPaint);
-
+        if (state != CardState.SHARP) {
+            mPaint.setStrokeWidth(STROKE_WIDTH);
+            mPaint.setStyle(Paint.Style.STROKE);
+            mPaint.setColor(state == CardState.TOUCHED ? COLOR_EMPH : state == CardState.RECEIVING ? COLOR_SPECIAL : COLOR_REGULAR);
+            canvas.drawRoundRect(rect, radius, radius, mPaint);
+        }
     }
 
     /**
@@ -1434,8 +1417,7 @@ public class BoardView extends View {
                 } else {
                     if (mCardAnimationTop[i] != null && !(mDragReturnTicks > 0 && mTouchedLocation == i)) {
                         mCardAnimationTop[i].draw(canvas);
-                    }
-                    if (mDisableAnimationTop[i] != null && mDealAnimationCount == 0 && !(mDragReturnTicks > 0 && mTouchedLocation == i)) {
+                    } else if (mDisableAnimationTop[i] != null && mDealAnimationCount == 0 && !(mDragReturnTicks > 0 && mTouchedLocation == i)) {
                         mDisableAnimationTop[i].draw(canvas);
                     }
                 }
@@ -1444,8 +1426,7 @@ public class BoardView extends View {
                 } else {
                     if (mCardAnimationBottom[i] != null && !(mDragReturnTicks > 0 && mTouchedLocation == 10 + i)) {
                         mCardAnimationBottom[i].draw(canvas);
-                    }
-                    if (mDisableAnimationBottom[i] != null && mDealAnimationCount == 0 && !(mDragReturnTicks > 0 && mTouchedLocation == 10 + i)) {
+                    } else if (mDisableAnimationBottom[i] != null && mDealAnimationCount == 0 && !(mDragReturnTicks > 0 && mTouchedLocation == 10 + i)) {
                         mDisableAnimationBottom[i].draw(canvas);
                     }
                 }
@@ -1500,6 +1481,7 @@ public class BoardView extends View {
                     mDiscardAnimation.finish();
                     mDiscardAnimation = null;
                     isDiscarding = false;
+                    isDiscarding = false;
                     resetTouchFeedback();
                     processMove();
                 }
@@ -1507,39 +1489,45 @@ public class BoardView extends View {
             if (mCardAnimationCount > 0) { //Card animations (includes disabled)
                 for (int i = 0; i < 4; i++) {
                     Animation animation = mCardAnimationBottom[i];
-                    if (animation != null && !(mDragReturnTicks > 0 && mTouchedLocation == 10 + i)) {
-                        animation.tick();
-                        if (animation.isFinished()) {
-                            animation.finish();
-                            mCardAnimationBottom[i] = null;
-                            mCardAnimationCount--;
+                    if (animation != null) {
+                        if (!(mDragReturnTicks > 0 && mTouchedLocation == 10 + i)) {
+                            animation.tick();
+                            if (animation.isFinished()) {
+                                animation.finish();
+                                mCardAnimationBottom[i] = null;
+                                mCardAnimationCount--;
+                            }
+                        }
+                    } else {
+                        animation = mDisableAnimationBottom[i];
+                        if (animation != null && mDealAnimationCount == 0 && !(mDragReturnTicks > 0 && mTouchedLocation == 10 + i)) {
+                            animation.tick();
+                            if (animation.isFinished()) {
+                                animation.finish();
+                                mDisableAnimationBottom[i] = null;
+                                mCardAnimationCount--;
+                            }
                         }
                     }
                     animation = mCardAnimationTop[i];
-                    if (animation != null && !(mDragReturnTicks > 0 && mTouchedLocation == i)) {
-                        animation.tick();
-                        if (animation.isFinished()) {
-                            animation.finish();
-                            mCardAnimationTop[i] = null;
-                            mCardAnimationCount--;
+                    if (animation != null) {
+                        if (!(mDragReturnTicks > 0 && mTouchedLocation == i)) {
+                            animation.tick();
+                            if (animation.isFinished()) {
+                                animation.finish();
+                                mCardAnimationTop[i] = null;
+                                mCardAnimationCount--;
+                            }
                         }
-                    }
-                    animation = mDisableAnimationBottom[i];
-                    if (animation != null && mDealAnimationCount == 0 && !(mDragReturnTicks > 0 && mTouchedLocation == 10 + i)) {
-                        animation.tick();
-                        if (animation.isFinished()) {
-                            animation.finish();
-                            mDisableAnimationBottom[i] = null;
-                            mCardAnimationCount--;
-                        }
-                    }
-                    animation = mDisableAnimationTop[i];
-                    if (animation != null && mDealAnimationCount == 0 && !(mDragReturnTicks > 0 && mTouchedLocation == i)) {
-                        animation.tick();
-                        if (animation.isFinished()) {
-                            animation.finish();
-                            mDisableAnimationTop[i] = null;
-                            mCardAnimationCount--;
+                    } else {
+                        animation = mDisableAnimationTop[i];
+                        if (animation != null && mDealAnimationCount == 0 && !(mDragReturnTicks > 0 && mTouchedLocation == i)) {
+                            animation.tick();
+                            if (animation.isFinished()) {
+                                animation.finish();
+                                mDisableAnimationTop[i] = null;
+                                mCardAnimationCount--;
+                            }
                         }
                     }
                 }
@@ -1725,6 +1713,22 @@ public class BoardView extends View {
             mCardAnimationTop[target] = new CardImproveAnimation(position);
         } else {
             mCardAnimationBottom[target - 10] = new CardImproveAnimation(position);
+        }
+        invalidate();
+    }
+
+    /**
+     * Start hero quaff animation
+     * @param target  Target location
+     * @param newCard Card to which to transform
+     */
+    private void animateCardTransform(int target, Card newCard) {
+        Position position = (target < 10 ? mRowTop[target] : mRowBottom[target - 10]);
+        mCardAnimationCount++;
+        if (target < 10) {
+            mCardAnimationTop[target] = new CardTransformAnimation(target, position, newCard);
+        } else {
+            mCardAnimationBottom[target - 10] = new CardTransformAnimation(target, position, newCard);
         }
         invalidate();
     }
@@ -1969,7 +1973,7 @@ public class BoardView extends View {
     //----------------------------------------------------------------------------------------------
 
     /**
-     * Animation class for card dealing
+     * Animation class for card dropping
      */
     private class DeckDropAnimation implements Animation {
 
@@ -2301,6 +2305,81 @@ public class BoardView extends View {
         @Override
         public void finish() {
             this.position.getCard().setActive(false);
+        }
+    }
+
+    //----------------------------------------------------------------------------------------------
+
+    /**
+     * Animation class for card transforming
+     */
+    private class CardTransformAnimation implements Animation {
+
+        private int target;
+        private Position position;
+        private RectF oldRect;
+        private RectF newRect;
+        private Card newCard;
+        private float curX;
+        private float dx;
+
+        private Path path;
+        private int ticksLeft;
+
+        public CardTransformAnimation(int target, Position position, Card newCard) {
+            this.target = target;
+            this.position = position;
+            this.newCard = newCard;
+            oldRect = position.getRect();
+            newRect = new RectF(oldRect);
+            newRect.offset(oldRect.width(), 0f);
+            float radius = oldRect.width() / 7;
+            path = new Path();
+            path.addRoundRect(oldRect, radius, radius, Path.Direction.CW);
+            path.close();
+            ticksLeft = 9;
+            curX = 0f;
+            dx = -oldRect.width() / ticksLeft;
+        }
+
+        @Override
+        public boolean isFinished() {
+            return ticksLeft <= 0;
+        }
+
+        @Override
+        public void tick() {
+            curX += dx;
+            ticksLeft--;
+        }
+
+        @Override
+        public void draw(Canvas canvas) {
+            canvas.save();
+            canvas.clipPath(path, Region.Op.REPLACE);
+            canvas.translate(curX, 0f);
+            drawCard(canvas, position.getCard(), oldRect, CardState.SHARP);
+            drawCard(canvas, newCard, newRect, CardState.SHARP);
+            mPaint.setStrokeWidth(STROKE_WIDTH);
+            mPaint.setStyle(Paint.Style.STROKE);
+            mPaint.setColor(COLOR_REGULAR);
+            canvas.drawLine(newRect.left, newRect.top, newRect.left, newRect.bottom, mPaint);
+            canvas.restore();
+            drawCard(canvas, null, oldRect, CardState.MOVED);
+        }
+
+        @Override
+        public void finish() {
+            position.setCard(newCard);
+            if (newCard.getType() == Card.Type.POTION && (target == LOC_LEFT_HAND || target == LOC_RIGHT_HAND)) {
+                animateCardDisable(target);
+                mRowBottom[1].getCard().setValue(Math.min(Card.HERO_MAX + mHealthAddition, mRowBottom[1].getCard().getValue() + newCard.getValue()));
+                animateCardImprove(LOC_HERO);
+            }
+            if (newCard.getType() == Card.Type.COIN && (target == LOC_LEFT_HAND || target == LOC_RIGHT_HAND || target == LOC_BACKPACK)) {
+                animateCardDisable(target);
+                mCoins += newCard.getValue();
+            }
         }
     }
 
