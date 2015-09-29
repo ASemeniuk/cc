@@ -95,6 +95,8 @@ public class BoardView extends View {
     private Animation[] mCardAnimationBottom = new Animation[4];
     private Animation[] mDisableAnimationTop = new Animation[4];
     private Animation[] mDisableAnimationBottom = new Animation[4];
+    private boolean isCoinAnimated = false;
+    private Animation mCoinAnimation = null;
 
     private boolean isBeginning = false;
     private boolean isMeasurementChanged = false;
@@ -152,6 +154,7 @@ public class BoardView extends View {
         mReceiveAnimationCount = 0;
         mDropAnimationCount = 0;
         mCardAnimationCount = 0;
+        isCoinAnimated = false;
         isNeedToReflectDamage = false;
         isNeedToReviveHero = false;
         isHeroAnimated = false;
@@ -198,7 +201,7 @@ public class BoardView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
-        if (isGameOver || mDragReturnTicks > 0 || mDealAnimationCount > 0 || mReceiveAnimationCount > 0 || mDropAnimationCount > 0 || isHeroAnimated || mCardAnimationCount > 0 || isDiscarding) {
+        if (isGameOver || mDragReturnTicks > 0 || mDealAnimationCount > 0 || mReceiveAnimationCount > 0 || mDropAnimationCount > 0 || isHeroAnimated || mCardAnimationCount > 0 || isDiscarding || isCoinAnimated) {
             return true;
         }
         float x = e.getX();
@@ -582,7 +585,7 @@ public class BoardView extends View {
                 animateCardDisable(destination);
                 dstPosition.setCard(srcCard);
                 destroyCard(srcPosition);
-                mCoins += srcCard.getValue();
+                addCoins(srcCard.getValue());
                 break;
             case ABILITY:
                 if ((destination == LOC_RIGHT_HAND || destination == LOC_LEFT_HAND || destination == LOC_BACKPACK) && source != LOC_LEFT_HAND && source != LOC_RIGHT_HAND) { //Pack/Equip
@@ -659,7 +662,7 @@ public class BoardView extends View {
                             Card stolenCard = mDeck.deal();
                             if (stolenCard.getType() == Card.Type.COIN) { //Coins
                                 animateCardDisable(LOC_BACKPACK);
-                                mCoins += stolenCard.getValue();
+                                addCoins(stolenCard.getValue());
                             }
                             animateDealCard(stolenCard, LOC_BACKPACK);
                             destroyCard(srcPosition);
@@ -751,7 +754,7 @@ public class BoardView extends View {
                             destroyCard(srcPosition);
                             break;
                         case TRADE:
-                            mCoins += 10;
+                            addCoins(10);
                             mDragRelX = 0;
                             mDragRelY = 0;
                             mTouchedLocation = destination;
@@ -838,7 +841,7 @@ public class BoardView extends View {
                             destroyCard(srcPosition);
                             break;
                         case BLEED:
-                            mCoins += mDamageTakenDuringTurn;
+                            addCoins(mDamageTakenDuringTurn);
                             destroyCard(srcPosition);
                             break;
                         case SUICIDE:
@@ -867,7 +870,7 @@ public class BoardView extends View {
                             destroyCard(srcPosition);
                             break;
                         case BOUNTY:
-                            mCoins += mBountyTargetsDelivered * srcCard.getValue();
+                            addCoins(mBountyTargetsDelivered * srcCard.getValue());
                             destroyCard(srcPosition);
                             break;
                         case EQUALIZE:
@@ -943,6 +946,16 @@ public class BoardView extends View {
     }
 
     /**
+     * Adds coins to hero bank
+     * @param amount Number of coins to add
+     */
+    private void addCoins(int amount) {
+        isCoinAnimated = true;
+        mCoinAnimation = new CoinAddAnimation(amount);
+        invalidate();
+    }
+
+    /**
      * Discards card
      * @param location Card location
      */
@@ -957,7 +970,7 @@ public class BoardView extends View {
             case WEAPON:
             case SHIELD:
             case POTION:
-                mCoins += card.getValue();
+                addCoins(card.getValue());
                 animateCardDiscard(location);
                 break;
             case COIN:
@@ -966,12 +979,11 @@ public class BoardView extends View {
         }
     }
 
-
     /**
      * Perform necessary calculations after each move
      */
     private void processMove() {
-        if (mCardAnimationCount > 0 || mDealAnimationCount > 0 || mReceiveAnimationCount > 0) {
+        if (mCardAnimationCount > 0 || mDealAnimationCount > 0 || mReceiveAnimationCount > 0 || isCoinAnimated) {
             return;
         }
         isFreshDeal = false;
@@ -1441,11 +1453,15 @@ public class BoardView extends View {
             mDiscardAnimation.draw(canvas);
         }
 
+        if (isCoinAnimated && mCoinAnimation != null) {
+            mCoinAnimation.draw(canvas);
+        }
+
         if (isGameOver) {
             canvas.drawColor(0xdd000000);
         }
 
-        if (mDragReturnTicks > 0 || mDealAnimationCount > 0 || mReceiveAnimationCount > 0 || mDropAnimationCount > 0 || isHeroAnimated || mCardAnimationCount > 0 || isDiscarding) { //Need to animate
+        if (mDragReturnTicks > 0 || mDealAnimationCount > 0 || mReceiveAnimationCount > 0 || mDropAnimationCount > 0 || isHeroAnimated || mCardAnimationCount > 0 || isDiscarding || isCoinAnimated) { //Need to animate
             this.postDelayed(mAnimationAction, 10);
         }
 
@@ -1533,6 +1549,16 @@ public class BoardView extends View {
                 }
                 if (mCardAnimationCount == 0) {
                     processMove();
+                }
+            }
+            if (isCoinAnimated) { //Coin animation
+                if (mCoinAnimation != null) {
+                    mCoinAnimation.tick();
+                    if (mCoinAnimation.isFinished()) {
+                        mCoinAnimation.finish();
+                        mCoinAnimation = null;
+                        isCoinAnimated = false;
+                    }
                 }
             }
             if (mReceiveAnimationCount > 0) { //Receive animations
@@ -2119,6 +2145,52 @@ public class BoardView extends View {
     //----------------------------------------------------------------------------------------------
 
     /**
+     * Animation class for adding coins
+     */
+    private class CoinAddAnimation implements Animation {
+
+        private final int PERIOD = 3;
+
+        private int amount;
+        private int ticksLeft;
+
+        public CoinAddAnimation(int amount) {
+            this.amount = amount;
+            this.ticksLeft = PERIOD;
+        }
+
+        @Override
+        public boolean isFinished() {
+            return amount <= 0;
+        }
+
+        @Override
+        public void tick() {
+            ticksLeft--;
+            if (ticksLeft <= 0) {
+                amount--;
+                mCoins++;
+                ticksLeft = PERIOD;
+            }
+        }
+
+        @Override
+        public void draw(Canvas canvas) {
+            RectF rect = mRowBottom[1].getRect();
+            mTextPaint.setTextSize(mFontSize * 1.2f);
+            mTextPaint.setColor(COLOR_EMPH);
+            String text = String.format("+%d", amount);
+            canvas.drawText(text, rect.left + mFontPadding * 3 / 2, rect.bottom - mTextPaint.ascent() - (mFontSize + mFontPadding) * 2, mTextPaint);
+        }
+
+        @Override
+        public void finish() {
+        }
+    }
+
+    //----------------------------------------------------------------------------------------------
+
+    /**
      * Animation class for card improvement
      */
     private class CardImproveAnimation implements Animation {
@@ -2378,7 +2450,7 @@ public class BoardView extends View {
             }
             if (newCard.getType() == Card.Type.COIN && (target == LOC_LEFT_HAND || target == LOC_RIGHT_HAND || target == LOC_BACKPACK)) {
                 animateCardDisable(target);
-                mCoins += newCard.getValue();
+                addCoins(newCard.getValue());
             }
         }
     }
