@@ -201,7 +201,7 @@ public class BoardView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
-        if (isGameOver || mDragReturnTicks > 0 || mDealAnimationCount > 0 || mReceiveAnimationCount > 0 || mDropAnimationCount > 0 || isHeroAnimated || mCardAnimationCount > 0 || isDiscarding || isCoinAnimated) {
+        if (isGameOver || mDragReturnTicks > 0 || mDealAnimationCount > 0 || mReceiveAnimationCount > 0 || mDropAnimationCount > 0 || isHeroAnimated || mCardAnimationCount > 0 || isDiscarding) {
             return true;
         }
         float x = e.getX();
@@ -950,8 +950,12 @@ public class BoardView extends View {
      * @param amount Number of coins to add
      */
     private void addCoins(int amount) {
-        isCoinAnimated = true;
-        mCoinAnimation = new CoinAddAnimation(amount);
+        if (isCoinAnimated && mCoinAnimation != null) {
+            ((CoinAddAnimation) mCoinAnimation).addAmount(amount);
+        } else {
+            isCoinAnimated = true;
+            mCoinAnimation = new CoinAddAnimation(amount);
+        }
         invalidate();
     }
 
@@ -983,7 +987,7 @@ public class BoardView extends View {
      * Perform necessary calculations after each move
      */
     private void processMove() {
-        if (mCardAnimationCount > 0 || mDealAnimationCount > 0 || mReceiveAnimationCount > 0 || isCoinAnimated) {
+        if (mCardAnimationCount > 0 || mDealAnimationCount > 0 || mReceiveAnimationCount > 0) {
             return;
         }
         isFreshDeal = false;
@@ -1335,7 +1339,7 @@ public class BoardView extends View {
         }
         for (int i = 0; i < 4; i++) { //Draw bottom row
             if (mRowBottom[i] != null) {
-                if (i == 1 && isHeroAnimated) {
+                if (i == 1 && isHeroAnimated && !isCoinAnimated) {
                     drawPosition(canvas, mRowBottom[i], CardState.MOVED);
                     continue;
                 }
@@ -1445,7 +1449,7 @@ public class BoardView extends View {
             }
         }
 
-        if (isHeroAnimated && mHeroAnimation != null) { //Hero animations
+        if (isHeroAnimated && mHeroAnimation != null && !isCoinAnimated) { //Hero animations
             mHeroAnimation.draw(canvas);
         }
 
@@ -1483,7 +1487,7 @@ public class BoardView extends View {
                     resetTouchFeedback();
                 }
             }
-            if (isHeroAnimated) {
+            if (isHeroAnimated && !isCoinAnimated) {
                 mHeroAnimation.tick();
                 if (mHeroAnimation.isFinished()) {
                     mHeroAnimation.finish();
@@ -1559,6 +1563,9 @@ public class BoardView extends View {
                         mCoinAnimation = null;
                         isCoinAnimated = false;
                     }
+                }
+                if (!isCoinAnimated) {
+                    processMove();
                 }
             }
             if (mReceiveAnimationCount > 0) { //Receive animations
@@ -2157,6 +2164,10 @@ public class BoardView extends View {
         public CoinAddAnimation(int amount) {
             this.amount = amount;
             this.ticksLeft = PERIOD;
+        }
+
+        public void addAmount(int amount) {
+            this.amount += amount;
         }
 
         @Override
