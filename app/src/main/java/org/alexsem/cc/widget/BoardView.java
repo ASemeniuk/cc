@@ -165,10 +165,10 @@ public class BoardView extends View {
         invalidate();
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.DEVOUR);
+//        card.setAbility(Card.Ability.LUCKY);
 //        mRowTop[0].setCard(card);
-//        mRowTop[0].setCard(Card.getOther(Card.Type.MONSTER, 7));
 //        mRowTop[1].setCard(Card.getOther(Card.Type.MONSTER, 7));
+//        mRowTop[2].setCard(Card.getOther(Card.Type.MONSTER, 7));
 //        while (mDeck.size() > 0) {
 //            mDeck.deal();
 //        }
@@ -730,7 +730,7 @@ public class BoardView extends View {
                             break;
                         case LUCKY:
                             int randomCount = 2 - (int) (Math.random() * 3) / 2;
-                            Set<Card> cardSet = new HashSet<>();
+                            int previousTarget;
                             for (int i = 0; i < randomCount; i++) {
                                 int randomTarget;
                                 Card randomCard;
@@ -738,11 +738,11 @@ public class BoardView extends View {
                                     randomTarget = (int) (Math.random() * 4);
                                     randomCard = mRowTop[(randomTarget)].getCard();
                                 } while (randomCard == null);
-                                cardSet.add(randomCard);
+                                previousTarget = randomTarget;
                                 animateCardCrack(randomCard, randomTarget);
                                 boolean cardsLeft = false;
-                                for (Position p : mRowTop) {
-                                    if (p.getCard() != null && !cardSet.contains(p.getCard())) {
+                                for (int j = 0; j < mRowTop.length; j++) {
+                                    if (mRowTop[j].getCard() != null && j != previousTarget) {
                                         cardsLeft = true;
                                         break;
                                     }
