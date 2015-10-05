@@ -20,9 +20,7 @@ import org.alexsem.cc.model.Card;
 import org.alexsem.cc.model.Deck;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class BoardView extends View {
 
@@ -64,6 +62,7 @@ public class BoardView extends View {
     private Animation mDiscardAnimation;
     private int mLongTouchedLocation = -1;
     private Runnable mLongTouchRunnable;
+    private boolean isRestartTouched = false;
 
     private Deck mDeck;
     private Box mDiscardBox;
@@ -79,6 +78,7 @@ public class BoardView extends View {
     private boolean isNeedToReviveHero;
     private boolean isNeedToReflectDamage;
     private RectF mDeckPosition;
+    private RectF mRestartButton;
 
     private int mDealAnimationCount = 0;
     private Animation[] mDealAnimationTop = new Animation[4];
@@ -99,6 +99,7 @@ public class BoardView extends View {
     private Animation mCoinAnimation = null;
 
     private boolean isBeginning = false;
+    private boolean isRestarting = false;
     private boolean isMeasurementChanged = false;
     private boolean isGameOver = false;
 
@@ -128,6 +129,7 @@ public class BoardView extends View {
 
     public void begin() {
         this.isBeginning = true;
+        this.isRestarting = false;
         mDeck = Deck.generateFixed();
         for (int i = 0; i < 4; i++) {
             mRowTop[i] = new Position();
@@ -159,6 +161,7 @@ public class BoardView extends View {
         isNeedToReviveHero = false;
         isHeroAnimated = false;
         isDragging = false;
+        isRestartTouched = false;
         isDiscarding = false;
         isGameOver = false;
         isMeasurementChanged = true;
@@ -201,7 +204,7 @@ public class BoardView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
-        if (isGameOver || mDragReturnTicks > 0 || mDealAnimationCount > 0 || mReceiveAnimationCount > 0 || mDropAnimationCount > 0 || isHeroAnimated || mCardAnimationCount > 0 || isDiscarding) {
+        if (mDragReturnTicks > 0 || mDealAnimationCount > 0 || mReceiveAnimationCount > 0 || mDropAnimationCount > 0 || isHeroAnimated || mCardAnimationCount > 0 || isDiscarding) {
             return true;
         }
         float x = e.getX();
@@ -209,95 +212,126 @@ public class BoardView extends View {
         Position pos;
         switch (e.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                boolean longTouch = false;
-                for (int i = 0; i < 4; i++) {
-                    pos = mRowTop[i];
-                    if (pos != null && pos.contains(x, y) && canTouchThis(i)) {
-                        if (pos.getCard() != null && pos.getCard().getType() == Card.Type.ABILITY) {
-                            longTouch = true;
+                if (!isGameOver) {
+                    boolean longTouch = false;
+                    for (int i = 0; i < 4; i++) {
+                        pos = mRowTop[i];
+                        if (pos != null && pos.contains(x, y) && canTouchThis(i)) {
+                            if (pos.getCard() != null && pos.getCard().getType() == Card.Type.ABILITY) {
+                                longTouch = true;
+                            }
+                            mTouchedLocation = i;
+                            mTouchedX = x;
+                            mTouchedY = y;
+                            invalidate();
+                            break;
                         }
-                        mTouchedLocation = i;
-                        mTouchedX = x;
-                        mTouchedY = y;
-                        invalidate();
-                        break;
+                        pos = mRowBottom[i];
+                        if (pos != null && pos.contains(x, y) && canTouchThis(10 + i)) {
+                            if (pos.getCard() != null && pos.getCard().getType() == Card.Type.ABILITY) {
+                                longTouch = true;
+                            }
+                            mTouchedLocation = 10 + i;
+                            mTouchedX = x;
+                            mTouchedY = y;
+                            invalidate();
+                            break;
+                        }
                     }
-                    pos = mRowBottom[i];
-                    if (pos != null && pos.contains(x, y) && canTouchThis(10 + i)) {
-                        if (pos.getCard() != null && pos.getCard().getType() == Card.Type.ABILITY) {
-                            longTouch = true;
-                        }
-                        mTouchedLocation = 10 + i;
-                        mTouchedX = x;
-                        mTouchedY = y;
-                        invalidate();
-                        break;
+                    if (longTouch) { //Need to perform long touch routine
+                        mLongTouchedLocation = mTouchedLocation;
+                        mLongTouchRunnable = new Runnable() {
+                            @Override
+                            public void run() {
+                                Card longTouchedCard = null;
+                                if (mLongTouchedLocation >= 10) {
+                                    longTouchedCard = mRowBottom[mLongTouchedLocation - 10].getCard();
+                                } else if (mLongTouchedLocation >= 0) {
+                                    longTouchedCard = mRowTop[mLongTouchedLocation].getCard();
+                                }
+                                if (longTouchedCard != null && longTouchedCard.getType() == Card.Type.ABILITY) {
+                                    Toast.makeText(getContext(), longTouchedCard.getAbility().getDescription(), Toast.LENGTH_LONG).show();
+                                }
+                                mLongTouchedLocation = -1;
+                            }
+                        };
+                        BoardView.this.postDelayed(mLongTouchRunnable, 1500);
                     }
                 }
-                if (longTouch) { //Need to perform long touch routine
-                    mLongTouchedLocation = mTouchedLocation;
-                    mLongTouchRunnable = new Runnable() {
-                        @Override
-                        public void run() {
-                            Card longTouchedCard = null;
-                            if (mLongTouchedLocation >= 10) {
-                                longTouchedCard = mRowBottom[mLongTouchedLocation - 10].getCard();
-                            } else if (mLongTouchedLocation >= 0) {
-                                longTouchedCard = mRowTop[mLongTouchedLocation].getCard();
-                            }
-                            if (longTouchedCard != null && longTouchedCard.getType() == Card.Type.ABILITY) {
-                                Toast.makeText(getContext(), longTouchedCard.getAbility().getDescription(), Toast.LENGTH_LONG).show();
-                            }
-                            mLongTouchedLocation = -1;
-                        }
-                    };
-                    BoardView.this.postDelayed(mLongTouchRunnable, 1500);
+                if (mRestartButton != null && mRestartButton.contains(x, y)) { //Restart touched
+                    isRestartTouched = true;
+                    invalidate();
                 }
                 break;
 
             case MotionEvent.ACTION_MOVE:
-                if (!isDragging && mTouchedLocation > -1) {
-                    float dx = x - mTouchedX;
-                    float dy = y - mTouchedY;
-                    if (Math.sqrt(dx * dx + dy * dy) > mEpsDrag) {
-                        isDragging = true;
-                        mLongTouchedLocation = -1;
-                        BoardView.this.removeCallbacks(mLongTouchRunnable);
+                if (!isGameOver) {
+                    if (!isDragging && mTouchedLocation > -1) {
+                        float dx = x - mTouchedX;
+                        float dy = y - mTouchedY;
+                        if (Math.sqrt(dx * dx + dy * dy) > mEpsDrag) {
+                            isDragging = true;
+                            mLongTouchedLocation = -1;
+                            BoardView.this.removeCallbacks(mLongTouchRunnable);
+                        }
+                    }
+                    if (isDragging) {
+                        mDragRelX = x - mTouchedX;
+                        mDragRelY = y - mTouchedY;
+                        invalidate();
                     }
                 }
-                if (isDragging) {
-                    mDragRelX = x - mTouchedX;
-                    mDragRelY = y - mTouchedY;
+                if (isRestartTouched && !mRestartButton.contains(x, y)) {
+                    isRestartTouched = false;
                     invalidate();
                 }
                 break;
 
             case MotionEvent.ACTION_UP:
-                if (isDragging) {
-                    boolean received = false;
-                    for (int i = 0; i < 4; i++) {
-                        pos = mRowTop[i];
-                        if (pos != null && pos.contains(x, y) && canReceiveThis(mTouchedLocation, i)) {
-                            doReceive(mTouchedLocation, i);
-                            received = true;
-                            break;
+                if (!isGameOver) {
+                    if (isDragging) {
+                        boolean received = false;
+                        for (int i = 0; i < 4; i++) {
+                            pos = mRowTop[i];
+                            if (pos != null && pos.contains(x, y) && canReceiveThis(mTouchedLocation, i)) {
+                                doReceive(mTouchedLocation, i);
+                                received = true;
+                                break;
+                            }
+                            pos = mRowBottom[i];
+                            if (pos != null && pos.contains(x, y) && canReceiveThis(mTouchedLocation, i + 10)) {
+                                doReceive(mTouchedLocation, i + 10);
+                                received = true;
+                                break;
+                            }
                         }
-                        pos = mRowBottom[i];
-                        if (pos != null && pos.contains(x, y) && canReceiveThis(mTouchedLocation, i + 10)) {
-                            doReceive(mTouchedLocation, i + 10);
+                        if (mDiscardBox != null && mDiscardBox.contains(x, y) && canDiscardThis(mTouchedLocation)) {
+                            doDiscard(mTouchedLocation);
                             received = true;
-                            break;
+                        }
+                        if (!received) {
+                            float distance = (float) Math.sqrt(mDragRelX * mDragRelX + mDragRelY * mDragRelY);
+                            mDragReturnTicks = (int) (distance / mDragReturnSpeed);
+                            mDragSpeedX = mDragRelX / mDragReturnTicks;
+                            mDragSpeedY = mDragRelY / mDragReturnTicks;
                         }
                     }
-                    if (mDiscardBox != null && mDiscardBox.contains(x, y) && canDiscardThis(mTouchedLocation)) {
-                        doDiscard(mTouchedLocation);
-                        received = true;
-                    }
-                    if (!received) {
-                        float distance = (float) Math.sqrt(mDragRelX * mDragRelX + mDragRelY * mDragRelY);
-                        mDragReturnTicks = (int) (distance / mDragReturnSpeed);
-                        mDragSpeedX = mDragRelX / mDragReturnTicks;
-                        mDragSpeedY = mDragRelY / mDragReturnTicks;
+                }
+                if (isRestartTouched && mRestartButton.contains(x, y)) {
+                    if (isGameOver) {
+                        begin();
+                    } else {
+                        for (int i = 0; i < 4; i++) {
+                            animateReceiveCard(mRowTop[i].getCard(), i, true);
+                            destroyCard(mRowTop[i]);
+                            if (i != 1) {
+                                animateDropCard(mRowBottom[i].getCard(), i + 10);
+                                destroyCard(mRowBottom[i]);
+                            }
+                        }
+                        animateHeroVanish();
+                        isRestartTouched = false;
+                        isRestarting = true;
                     }
                 }
                 resetTouchFeedback();
@@ -317,6 +351,7 @@ public class BoardView extends View {
      */
     private void resetTouchFeedback() {
         isDragging = false;
+        isRestartTouched = false;
         if (mDragReturnTicks <= 0 && mTouchedLocation > -1 && !isDiscarding) {
             mTouchedLocation = -1;
             invalidate();
@@ -987,7 +1022,10 @@ public class BoardView extends View {
      * Perform necessary calculations after each move
      */
     private void processMove() {
-        if (mCardAnimationCount > 0 || mDealAnimationCount > 0 || mReceiveAnimationCount > 0) {
+        if (mCardAnimationCount > 0 || mDealAnimationCount > 0 || mReceiveAnimationCount > 0 || isHeroAnimated) { //Animations in progress
+            return;
+        }
+        if (isRestarting) { //Need to restart
             return;
         }
         isFreshDeal = false;
@@ -1090,6 +1128,9 @@ public class BoardView extends View {
         int dew = cw / 4;
         int deh = ch / 4;
         mDeckPosition = new RectF((width - dew) / 2, topTop - pVert * 2 - ch - deh, (width + dew) / 2, topTop - pVert * 2 - ch);
+
+        int res = cw * 4 / 15;
+        mRestartButton = new RectF(width - pHorz - res, pVert, width - pHorz, pVert + res);
 
         if (isBeginning) { //Beginning of the game
             animateHeroAppear();
@@ -1369,6 +1410,7 @@ public class BoardView extends View {
             mPaint.setStrokeWidth(STROKE_WIDTH / 2);
             canvas.drawLine(rect.left, rect.top, rect.right, rect.bottom, mPaint);
             canvas.drawLine(rect.right, rect.top, rect.left, rect.bottom, mPaint);
+            mPaint.setStrokeWidth(STROKE_WIDTH);
         }
 
         if ((isDragging || mDragReturnTicks > 0) && mTouchedLocation > -1) {
@@ -1463,6 +1505,19 @@ public class BoardView extends View {
 
         if (isGameOver) {
             canvas.drawColor(0xdd000000);
+        }
+
+        if (mRestartButton != null) { //Restart button
+            mPaint.setStyle(Paint.Style.STROKE);
+            mPaint.setColor(isRestartTouched ? COLOR_REGULAR : COLOR_BG_CARD);
+            mPaint.setStrokeWidth(STROKE_WIDTH * 3 / 2);
+            canvas.save();
+            canvas.rotate(isRestartTouched ? 130f : 0f, mRestartButton.left + mRestartButton.width() / 2, mRestartButton.top + mRestartButton.height() / 2);
+            canvas.drawArc(mRestartButton, -20f, 270f, false, mPaint);
+            canvas.drawLine(mRestartButton.left + mRestartButton.width() / 2, mRestartButton.top, mRestartButton.left + mRestartButton.width() / 8, mRestartButton.top - mRestartButton.height() / 8, mPaint);
+            canvas.drawLine(mRestartButton.left + mRestartButton.width() / 2, mRestartButton.top, mRestartButton.left + mRestartButton.width() * 3 / 8, mRestartButton.top + mRestartButton.height() * 3 / 8, mPaint);
+            canvas.restore();
+            mPaint.setStrokeWidth(STROKE_WIDTH);
         }
 
         if (mDragReturnTicks > 0 || mDealAnimationCount > 0 || mReceiveAnimationCount > 0 || mDropAnimationCount > 0 || isHeroAnimated || mCardAnimationCount > 0 || isDiscarding || isCoinAnimated) { //Need to animate
@@ -2146,6 +2201,9 @@ public class BoardView extends View {
         public void finish() {
             destroyCard(mRowBottom[1]);
             isGameOver = true;
+            if (isRestarting) {
+                begin();
+            }
         }
     }
 
