@@ -102,6 +102,7 @@ public class BoardView extends View {
     private boolean isRestarting = false;
     private boolean isMeasurementChanged = false;
     private boolean isGameOver = false;
+    private boolean isHeroWon = false;
 
 
     //----------------------------------------------------------------------------------------------
@@ -164,6 +165,7 @@ public class BoardView extends View {
         isRestartTouched = false;
         isDiscarding = false;
         isGameOver = false;
+        isHeroWon = false;
         isMeasurementChanged = true;
         invalidate();
 
@@ -171,10 +173,10 @@ public class BoardView extends View {
 //        card.setAbility(Card.Ability.LUCKY);
 //        mRowTop[0].setCard(card);
 //        mRowTop[1].setCard(Card.getOther(Card.Type.MONSTER, 7));
-//        mRowTop[2].setCard(Card.getOther(Card.Type.MONSTER, 7));
-//        while (mDeck.size() > 0) {
-//            mDeck.deal();
-//        }
+        mRowTop[2].setCard(Card.getOther(Card.Type.MONSTER, 7));
+        while (mDeck.size() > 0) {
+            mDeck.deal();
+        }
 //        isNeedToReviveHero = true;
     }
 
@@ -212,7 +214,7 @@ public class BoardView extends View {
         Position pos;
         switch (e.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                if (!isGameOver) {
+                if (!isGameOver && !isHeroWon) {
                     boolean longTouch = false;
                     for (int i = 0; i < 4; i++) {
                         pos = mRowTop[i];
@@ -265,7 +267,7 @@ public class BoardView extends View {
                 break;
 
             case MotionEvent.ACTION_MOVE:
-                if (!isGameOver) {
+                if (!isGameOver && !isHeroWon) {
                     if (!isDragging && mTouchedLocation > -1) {
                         float dx = x - mTouchedX;
                         float dy = y - mTouchedY;
@@ -288,7 +290,7 @@ public class BoardView extends View {
                 break;
 
             case MotionEvent.ACTION_UP:
-                if (!isGameOver) {
+                if (!isGameOver && !isHeroWon) {
                     if (isDragging) {
                         boolean received = false;
                         for (int i = 0; i < 4; i++) {
@@ -318,7 +320,7 @@ public class BoardView extends View {
                     }
                 }
                 if (isRestartTouched && mRestartButton.contains(x, y)) {
-                    if (isGameOver) {
+                    if (isGameOver || isHeroWon) {
                         begin();
                     } else {
                         for (int i = 0; i < 4; i++) {
@@ -1380,7 +1382,7 @@ public class BoardView extends View {
         }
         for (int i = 0; i < 4; i++) { //Draw bottom row
             if (mRowBottom[i] != null) {
-                if (i == 1 && isHeroAnimated && !isCoinAnimated) {
+                if (i == 1 && (isHeroAnimated || isHeroWon) && !isCoinAnimated) {
                     drawPosition(canvas, mRowBottom[i], CardState.MOVED);
                     continue;
                 }
@@ -1501,6 +1503,18 @@ public class BoardView extends View {
 
         if (isCoinAnimated && mCoinAnimation != null) {
             mCoinAnimation.draw(canvas);
+        }
+
+        if (isHeroWon) {
+            Position position = mRowBottom[1];
+            RectF rect = position.getRect();
+            float curRelX = (getMeasuredWidth() / 2 - rect.left - rect.width() / 2);
+            float curRelY = (getMeasuredHeight() / 2 - rect.top - rect.height() / 2);
+            canvas.save();
+            canvas.translate(curRelX, curRelY);
+            canvas.scale(2f, 2f, rect.left + rect.width() / 2, rect.top + rect.height() / 2);
+            drawPosition(canvas, position, CardState.REGULAR);
+            canvas.restore();
         }
 
         if (isGameOver) {
@@ -2666,17 +2680,15 @@ public class BoardView extends View {
 
         @Override
         public boolean isFinished() {
-            return false;
+            return ticksLeft <= 0;
         }
 
         @Override
         public void tick() {
-            if (ticksLeft > 0) {
-                curRelX += dx;
-                curRelY += dy;
-                curScale += ds;
-                ticksLeft--;
-            }
+            curRelX += dx;
+            curRelY += dy;
+            curScale += ds;
+            ticksLeft--;
         }
 
         @Override
@@ -2691,7 +2703,7 @@ public class BoardView extends View {
 
         @Override
         public void finish() {
-            destroyCard(position);
+            isHeroWon = true;
         }
 
     }
