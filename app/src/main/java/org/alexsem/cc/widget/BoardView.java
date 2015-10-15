@@ -173,10 +173,10 @@ public class BoardView extends View {
 //        card.setAbility(Card.Ability.LUCKY);
 //        mRowTop[0].setCard(card);
 //        mRowTop[1].setCard(Card.getOther(Card.Type.MONSTER, 7));
-        mRowTop[2].setCard(Card.getOther(Card.Type.MONSTER, 7));
-        while (mDeck.size() > 0) {
-            mDeck.deal();
-        }
+//        mRowTop[2].setCard(Card.getOther(Card.Type.MONSTER, 7));
+//        while (mDeck.size() > 0) {
+//            mDeck.deal();
+//        }
 //        isNeedToReviveHero = true;
     }
 
@@ -829,7 +829,7 @@ public class BoardView extends View {
                             break;
                         case MORPH:
                             Card randomCard = Card.random();
-                            if (destination < 10) {
+                            if (destination < 10 && randomCard.getType() == Card.Type.MONSTER) {
                                 randomCard.setActive(mRowTop[destination].getCard().isActive());
                             }
                             animateCardTransform(destination, randomCard);
@@ -851,17 +851,12 @@ public class BoardView extends View {
                                     break;
                             }
                             coinCard.setType(Card.Type.COIN);
-                            if (destination >= 10) { //Bottom row
-                                coinCard.setActive(true);
-                            }
+                            coinCard.setActive(true);
                             animateCardTransform(destination, coinCard);
                             destroyCard(srcPosition);
                             break;
                         case DEVOUR:
                             Card specialCard = Card.getSpecial();
-                            if (destination < 10) {
-                                specialCard.setActive(mRowTop[destination].getCard().isActive());
-                            }
                             animateCardTransform(destination, specialCard);
                             destroyCard(srcPosition);
                             break;
