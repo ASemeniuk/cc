@@ -38,7 +38,17 @@ public class Card {
         BOUNTY("Collect 3 gold for each monster slain bigger or equal to 10"),
         EQUALIZE("Give the adjacent cards the value of the selected dungeon card"),
         DIGGER("Shuffle 3 randomly selected removed cards back into the deck"),
-        MIRROR("Duplicate a dungeon card and shuffle it back into the deck");
+        MIRROR("Duplicate a dungeon card and shuffle it back into the deck"),
+//        POISEN("Use a potion as a weapon, adjacent cards receive half the damage"),
+//        DOOM("Remove all cards and reduce the players life to 1"),
+//        BRIBE("Remove a dungeon card and pay its value in gold"),
+//        STAB("Trigger redraw. It will hit a random dungeon card"),
+//        HEIST("Shuffle the last 3 cards sold to shop into the deck"),
+//        TAME("Equip a monster as a sword or shield"),
+//        FEAST("A dungeon card gains the values of its adjacent cards and destroys them"),
+        CHAOS("All cards including the player randomly swap their values"); //TODO test
+//        FAITH("Double the value of the next 3 cards form the top of the deck"),
+//        CHAMPION("Exit the dungeon victorious");
 
         Ability(String description) {
             this.description = description;

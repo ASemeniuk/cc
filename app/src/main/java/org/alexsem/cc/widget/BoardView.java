@@ -20,6 +20,7 @@ import org.alexsem.cc.model.Card;
 import org.alexsem.cc.model.Deck;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class BoardView extends View {
@@ -170,7 +171,7 @@ public class BoardView extends View {
         invalidate();
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.LUCKY);
+//        card.setAbility(Card.Ability.CHAOS);
 //        mRowTop[0].setCard(card);
 //        mRowTop[1].setCard(Card.getOther(Card.Type.MONSTER, 7));
 //        mRowTop[2].setCard(Card.getOther(Card.Type.MONSTER, 7));
@@ -459,6 +460,7 @@ public class BoardView extends View {
                         case SUICIDE:
                         case BOUNTY:
                         case DIGGER:
+                        case CHAOS:
                             return (dstCard.getType() == Card.Type.HERO && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case BETRAYAL:
                             return (dstCard.getType() == Card.Type.MONSTER && destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
@@ -939,6 +941,35 @@ public class BoardView extends View {
                             mirroredCard.setActive(true);
                             mirroredCard.setWounded(false);
                             animateReceiveCard(mirroredCard, destination, true);
+                            destroyCard(srcPosition);
+                            break;
+                        case CHAOS:
+                            ArrayList<Integer> valuedPositions = new ArrayList<>();
+                            ArrayList<Integer> valuedValues = new ArrayList<>();
+                            for (int i = 0; i < 4; i++) {
+                                Card card = mRowTop[i].getCard();
+                                if (card != null && card.getValue() > 0) {
+                                    valuedPositions.add(i);
+                                    valuedValues.add(card.getValue());
+                                }
+                                card = mRowBottom[i].getCard();
+                                if (card != null && card.getValue() > 0) {
+                                    valuedPositions.add(i + 10);
+                                    valuedValues.add(card.getValue());
+                                }
+                            }
+                            Collections.shuffle(valuedValues);
+                            for (int i = 0; i < valuedPositions.size(); i++) {
+                                int position = valuedPositions.get(i);
+                                int value = valuedValues.get(i);
+                                Card card = position < 10 ? mRowTop[position].getCard() : mRowBottom[position - 10].getCard();
+                                if (card.getValue() > value) {
+                                    animateCardSuffer(position);
+                                } else {
+                                    animateCardImprove(position);
+                                }
+                                card.setValue(value);
+                            }
                             destroyCard(srcPosition);
                             break;
                     }
