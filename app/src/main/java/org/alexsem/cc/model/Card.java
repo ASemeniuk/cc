@@ -40,7 +40,7 @@ public class Card {
         DIGGER("Shuffle 3 randomly selected removed cards back into the deck"),
         MIRROR("Duplicate a dungeon card and shuffle it back into the deck"),
 //        POISEN("Use a potion as a weapon, adjacent cards receive half the damage"),
-//        DOOM("Remove all cards and reduce the players life to 1"),
+        DOOM("Remove all cards and reduce the players life to 1"),
 //        BRIBE("Remove a dungeon card and pay its value in gold"),
 //        STAB("Trigger redraw. It will hit a random dungeon card"),
 //        HEIST("Shuffle the last 3 cards sold to shop into the deck"),

@@ -171,7 +171,7 @@ public class BoardView extends View {
         invalidate();
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.CHAOS);
+//        card.setAbility(Card.Ability.DOOM);
 //        mRowTop[0].setCard(card);
 //        mRowTop[1].setCard(Card.getOther(Card.Type.MONSTER, 7));
 //        mRowTop[2].setCard(Card.getOther(Card.Type.MONSTER, 7));
@@ -460,6 +460,7 @@ public class BoardView extends View {
                         case SUICIDE:
                         case BOUNTY:
                         case DIGGER:
+                        case DOOM:
                         case CHAOS:
                             return (dstCard.getType() == Card.Type.HERO && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case BETRAYAL:
@@ -943,6 +944,21 @@ public class BoardView extends View {
                             animateReceiveCard(mirroredCard, destination, true);
                             destroyCard(srcPosition);
                             break;
+                        case DOOM:
+                            destroyCard(srcPosition);
+                            for (int i = 0; i < 4; i++) {
+                                if (mRowTop[i].getCard() != null) {
+                                    animateCardCrack(mRowTop[i].getCard(), i);
+                                }
+                                if (i == 1) { //Hero card
+                                    takeDamage(mRowBottom[i].getCard().getValue() - 1);
+                                    continue;
+                                }
+                                if (mRowBottom[i].getCard() != null) {
+                                    animateCardCrack(mRowBottom[i].getCard(), i + 10);
+                                }
+                            }
+                            break;
                         case CHAOS:
                             ArrayList<Integer> valuedPositions = new ArrayList<>();
                             ArrayList<Integer> valuedValues = new ArrayList<>();
@@ -963,6 +979,10 @@ public class BoardView extends View {
                                 int position = valuedPositions.get(i);
                                 int value = valuedValues.get(i);
                                 Card card = position < 10 ? mRowTop[position].getCard() : mRowBottom[position - 10].getCard();
+                                if (position == LOC_HERO && card.getValue() > value) { //Damage to Hero card
+                                    takeDamage(card.getValue() - value);
+                                    continue;
+                                }
                                 if (card.getValue() > value) {
                                     animateCardSuffer(position);
                                 } else {
