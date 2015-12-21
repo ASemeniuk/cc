@@ -171,7 +171,7 @@ public class BoardView extends View {
         invalidate();
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.DOOM);
+//        card.setAbility(Card.Ability.STAB);
 //        mRowTop[0].setCard(card);
 //        mRowTop[1].setCard(Card.getOther(Card.Type.MONSTER, 7));
 //        mRowTop[2].setCard(Card.getOther(Card.Type.MONSTER, 7));
@@ -461,6 +461,7 @@ public class BoardView extends View {
                         case BOUNTY:
                         case DIGGER:
                         case DOOM:
+                        case STAB:
                         case CHAOS:
                             return (dstCard.getType() == Card.Type.HERO && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case BETRAYAL:
@@ -958,6 +959,24 @@ public class BoardView extends View {
                                     animateCardCrack(mRowBottom[i].getCard(), i + 10);
                                 }
                             }
+                            break;
+                        case STAB:
+                            int stabTarget;
+                            do {
+                                stabTarget = (int) (Math.random() * 4);
+                            } while (mRowTop[stabTarget].getCard() == null);
+                            for (int i = 0; i < 4; i++) {
+                                Card card = mRowTop[i].getCard();
+                                if (i == stabTarget) {
+                                    animateCardCrack(card, stabTarget);
+                                } else {
+                                    if (card != null) {
+                                        animateReceiveCard(card, i, true);
+                                        destroyCard(mRowTop[i]);
+                                    }
+                                }
+                            }
+                            destroyCard(srcPosition);
                             break;
                         case CHAOS:
                             ArrayList<Integer> valuedPositions = new ArrayList<>();
