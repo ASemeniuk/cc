@@ -39,9 +39,9 @@ public class Card {
         EQUALIZE("Give the adjacent cards the value of the selected dungeon card"),
         DIGGER("Shuffle 3 randomly selected removed cards back into the deck"),
         MIRROR("Duplicate a dungeon card and shuffle it back into the deck"),
-//        POISEN("Use a potion as a weapon, adjacent cards receive half the damage"),
+//        POISON("Use a potion as a weapon, adjacent cards receive half the damage"),
         DOOM("Remove all cards and reduce the players life to 1"),
-//        BRIBE("Remove a dungeon card and pay its value in gold"),
+        BRIBE("Remove a dungeon card and pay its value in gold"), //TODO test selling ability cards, insufficient funds
         STAB("Trigger redraw. It will hit a random dungeon card"),
 //        HEIST("Shuffle the last 3 cards sold to shop into the deck"),
 //        TAME("Equip a monster as a sword or shield"),

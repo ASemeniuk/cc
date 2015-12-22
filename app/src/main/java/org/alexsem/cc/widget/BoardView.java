@@ -171,7 +171,7 @@ public class BoardView extends View {
         invalidate();
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.STAB);
+//        card.setAbility(Card.Ability.BRIBE);
 //        mRowTop[0].setCard(card);
 //        mRowTop[1].setCard(Card.getOther(Card.Type.MONSTER, 7));
 //        mRowTop[2].setCard(Card.getOther(Card.Type.MONSTER, 7));
@@ -438,18 +438,6 @@ public class BoardView extends View {
                             return (destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case VANISH:
                         case LASH:
-                            return (dstCard.getType() == Card.Type.HERO && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
-                        case LEECH:
-                        case SACRIFICE:
-                        case KILLER:
-                            return (dstCard.getType() == Card.Type.MONSTER && destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
-                        case POTIONIZE:
-                            return ((dstCard.getType() == Card.Type.COIN || dstCard.getType() == Card.Type.POTION || dstCard.getType() == Card.Type.WEAPON || dstCard.getType() == Card.Type.SHIELD) && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
-                        case EXCHANGE:
-                        case TRAP:
-                            return (destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
-                        case STEAL:
-                            return (dstCard.getType() == Card.Type.HERO && mDeck.size() > 0 && mRowBottom[3].getCard() == null && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case BASH:
                         case REFLECT:
                         case REVIVE:
@@ -464,6 +452,17 @@ public class BoardView extends View {
                         case STAB:
                         case CHAOS:
                             return (dstCard.getType() == Card.Type.HERO && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                        case LEECH:
+                        case SACRIFICE:
+                        case KILLER:
+                            return (dstCard.getType() == Card.Type.MONSTER && destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                        case POTIONIZE:
+                            return ((dstCard.getType() == Card.Type.COIN || dstCard.getType() == Card.Type.POTION || dstCard.getType() == Card.Type.WEAPON || dstCard.getType() == Card.Type.SHIELD) && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                        case EXCHANGE:
+                        case TRAP:
+                            return (destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                        case STEAL:
+                            return (dstCard.getType() == Card.Type.HERO && mDeck.size() > 0 && mRowBottom[3].getCard() == null && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case BETRAYAL:
                             return (dstCard.getType() == Card.Type.MONSTER && destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case TRADE:
@@ -480,6 +479,8 @@ public class BoardView extends View {
                             return (dstCard.getType() != Card.Type.HERO && dstCard.getValue() > 0 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case BLOODPACT:
                             return (dstCard.getType() == Card.Type.MONSTER && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                        case BRIBE:
+                            return (destination < 10 && dstCard.getValue() > 0 && mCoins >= dstCard.getValue() && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         default:
                             return false;
                     }
@@ -959,6 +960,12 @@ public class BoardView extends View {
                                     animateCardCrack(mRowBottom[i].getCard(), i + 10);
                                 }
                             }
+                            break;
+                        case BRIBE:
+                            addCoins(-dstCard.getValue());
+                            animateReceiveCard(dstCard, destination, false);
+                            destroyCard(dstPosition);
+                            destroyCard(srcPosition);
                             break;
                         case STAB:
                             int stabTarget;
@@ -2309,15 +2316,20 @@ public class BoardView extends View {
 
         @Override
         public boolean isFinished() {
-            return amount <= 0;
+            return amount == 0;
         }
 
         @Override
         public void tick() {
             ticksLeft--;
             if (ticksLeft <= 0) {
-                amount--;
-                mCoins++;
+                if (amount > 0) { //Add coins
+                    amount--;
+                    mCoins++;
+                } else { //Remove coins
+                    amount++;
+                    mCoins--;
+                }
                 ticksLeft = PERIOD;
             }
         }
