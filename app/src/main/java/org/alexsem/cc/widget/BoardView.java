@@ -171,7 +171,7 @@ public class BoardView extends View {
         invalidate();
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.POISON);
+//        card.setAbility(Card.Ability.CHAMPION);
 //        mRowTop[0].setCard(card);
 //        mRowTop[1].setCard(Card.getOther(Card.Type.MONSTER, 7));
 //        mRowTop[2].setCard(Card.getOther(Card.Type.MONSTER, 7));
@@ -456,6 +456,7 @@ public class BoardView extends View {
                         case DOOM:
                         case STAB:
                         case CHAOS:
+                        case CHAMPION:
                             return (dstCard.getType() == Card.Type.HERO && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case LEECH:
                         case SACRIFICE:
@@ -1054,6 +1055,22 @@ public class BoardView extends View {
                                 card.setValue(value);
                             }
                             destroyCard(srcPosition);
+                            break;
+                        case CHAMPION:
+                            destroyCard(srcPosition);
+                            while (mDeck.size() > 0) {
+                                mDeck.deal();
+                            }
+                            for (int i = 0; i < 4; i++) {
+                                if (mRowTop[i].getCard() != null) {
+                                    animateReceiveCard(mRowTop[i].getCard(), i, false);
+                                    destroyCard(mRowTop[i]);
+                                }
+                                if (i != 1 && mRowBottom[i].getCard() != null) {
+                                    animateDropCard(mRowBottom[i].getCard(), i + 10);
+                                    destroyCard(mRowBottom[i]);
+                                }
+                            }
                             break;
                     }
                 }
