@@ -39,11 +39,11 @@ public class Card {
         EQUALIZE("Give the adjacent cards the value of the selected dungeon card"),
         DIGGER("Shuffle 3 randomly selected removed cards back into the deck"),
         MIRROR("Duplicate a dungeon card and shuffle it back into the deck"),
-//        POISON("Use a potion as a weapon, adjacent cards receive half the damage"),
+        POISON("Use a potion as a weapon, adjacent cards receive half the damage"),
         DOOM("Remove all cards and reduce the players life to 1"),
         BRIBE("Remove a dungeon card and pay its value in gold"), //TODO test selling ability cards, insufficient funds
         STAB("Trigger redraw. It will hit a random dungeon card"),
-//        HEIST("Shuffle the last 3 cards sold to shop into the deck"),
+        //        HEIST("Shuffle the last 3 cards sold to shop into the deck"),
 //        TAME("Equip a monster as a sword or shield"),
 //        FEAST("A dungeon card gains the values of its adjacent cards and destroys them"),
         CHAOS("All cards including the player randomly swap their values"); //TODO test
@@ -67,8 +67,8 @@ public class Card {
 
     private Type type;
     private int value;
+    private int initialValue;
     private boolean active;
-    private boolean wounded;
     private String name;
     private Ability ability = null;
 
@@ -91,20 +91,20 @@ public class Card {
         }
     }
 
+    public int getInitialValue() {
+        return initialValue;
+    }
+
+    public void setInitialValue(int initialValue) {
+        this.initialValue = initialValue;
+    }
+
     public boolean isActive() {
         return active;
     }
 
     public void setActive(boolean active) {
         this.active = active;
-    }
-
-    public boolean isWounded() {
-        return wounded;
-    }
-
-    public void setWounded(boolean wounded) {
-        this.wounded = wounded;
     }
 
     public String getName() {
@@ -138,14 +138,15 @@ public class Card {
                     break;
             }
         }
+        this.setInitialValue(this.getValue());
     }
 
     public static Card getHero() {
         Card card = new Card();
         card.setType(Type.HERO);
         card.setValue(HERO_MAX);
+        card.setInitialValue(HERO_MAX);
         card.setActive(true);
-        card.setWounded(false);
         card.setName("");
         return card;
     }
@@ -154,7 +155,6 @@ public class Card {
         Card card = new Card();
         card.setType(Type.ABILITY);
         card.setActive(true);
-        card.setWounded(false);
         card.setAbility(abilities[(int) (Math.random() * abilities.length)]);
         return card;
     }
@@ -163,8 +163,8 @@ public class Card {
         Card card = new Card();
         card.setType(type);
         card.setValue(value);
+        card.setInitialValue(value);
         card.setActive(true);
-        card.setWounded(false);
         if (type == Type.MONSTER) {
             card.setName(mobNames[card.getValue()]);
         } else {
@@ -203,23 +203,21 @@ public class Card {
         card.setAbility(source.getAbility());
         card.setName(source.getName());
         card.setValue(source.getValue());
+        card.setInitialValue(source.getInitialValue());
         card.setActive(source.isActive());
-        card.setWounded(source.isWounded());
         return card;
     }
 
+
     /**
-     * Restore monster value based on its name
-     * @param name Monster name
-     * @return respective value or 0
+     * Restore initial card state
      */
-    public static int restoreMonsterValue(String name) {
-        for (int i = 0; i < mobNames.length; i++) {
-            if (name.equals(mobNames[i])) {
-                return i;
-            }
+    public void restoreState() {
+        this.setValue(this.getInitialValue());
+        this.setActive(true);
+        if (this.getType() != Type.ABILITY) {
+            this.setAbility(null);
         }
-        return 0;
     }
 
 
