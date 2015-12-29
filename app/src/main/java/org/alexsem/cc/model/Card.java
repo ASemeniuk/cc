@@ -45,7 +45,7 @@ public class Card {
         STAB("Trigger redraw. It will hit a random dungeon card"),
         //        HEIST("Shuffle the last 3 cards sold to shop into the deck"),
 //        TAME("Equip a monster as a sword or shield"),
-//        FEAST("A dungeon card gains the values of its adjacent cards and destroys them"),
+        FEAST("A dungeon card gains the values of its adjacent cards and destroys them"),
         CHAOS("All cards including the player randomly swap their values"), //TODO test
 //        FAITH("Double the value of the next 3 cards form the top of the deck"),
         CHAMPION("Exit the dungeon victorious");
