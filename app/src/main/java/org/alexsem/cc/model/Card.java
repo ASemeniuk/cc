@@ -33,7 +33,7 @@ public class Card {
         TRAP("Trap a dungeon card. This card does not need to be played"),
         LIFE("Raise the player life by 5. If it exceeds 13 raise the maximum life"),
         BLEED("Collect 1 gold for each point of damage taken in one turn"),
-        SUICIDE("Redraw 4 random monster cards"), //TODO test receive card
+        SUICIDE("Redraw 4 random monster cards"),
         BLOODPACT("Swap the player health with a monster card"),
         BOUNTY("Collect 3 gold for each monster slain bigger or equal to 10"),
         EQUALIZE("Give the adjacent cards the value of the selected dungeon card"),
@@ -41,7 +41,7 @@ public class Card {
         MIRROR("Duplicate a dungeon card and shuffle it back into the deck"),
         POISON("Use a potion as a weapon, adjacent cards receive half the damage"),
         DOOM("Remove all cards and reduce the players life to 1"),
-        BRIBE("Remove a dungeon card and pay its value in gold"), //TODO test selling ability cards, insufficient funds
+        BRIBE("Remove a dungeon card and pay its value in gold"),
         STAB("Trigger redraw. It will hit a random dungeon card"),
         //        HEIST("Shuffle the last 3 cards sold to shop into the deck"),
 //        TAME("Equip a monster as a sword or shield"),

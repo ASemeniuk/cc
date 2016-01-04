@@ -440,6 +440,7 @@ public class BoardView extends View {
                         case SAP:
                         case EXCHANGE:
                         case TRAP:
+                        case BRIBE:
                             return (destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case VANISH:
                         case LASH:
@@ -485,8 +486,6 @@ public class BoardView extends View {
                             return (dstCard.getType() == Card.Type.MONSTER && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case POISON:
                             return (dstCard.getType() == Card.Type.POTION && dstCard.getAbility() == null && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
-                        case BRIBE:
-                            return (destination < 10 && dstCard.getValue() > 0 && mCoins >= dstCard.getValue() && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         default:
                             return false;
                     }
@@ -994,7 +993,7 @@ public class BoardView extends View {
                             }
                             break;
                         case BRIBE:
-                            addCoins(-dstCard.getValue());
+                            addCoins(-Math.min(mCoins, dstCard.getValue()));
                             animateReceiveCard(dstCard, destination, false);
                             destroyCard(dstPosition);
                             destroyCard(srcPosition);
