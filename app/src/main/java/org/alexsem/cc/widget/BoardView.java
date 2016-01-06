@@ -171,7 +171,7 @@ public class BoardView extends View {
         invalidate();
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.FEAST);
+//        card.setAbility(Card.Ability.TAME);
 //        mRowTop[0].setCard(card);
 //        mRowTop[1].setCard(Card.getOther(Card.Type.MONSTER, 7));
 //        mRowTop[2].setCard(Card.getOther(Card.Type.MONSTER, 7));
@@ -378,6 +378,7 @@ public class BoardView extends View {
                 case HERO:
                     return false;
                 case MONSTER:
+                case MONSTER_TAMED:
                 case WEAPON:
                 case ABILITY:
                     return true;
@@ -406,9 +407,15 @@ public class BoardView extends View {
         switch (srcCard.getType()) {
             case MONSTER:
                 if (dstCard != null) {
-                    return (dstCard.getType() == Card.Type.HERO || (dstCard.getType() == Card.Type.SHIELD && (destination == LOC_LEFT_HAND || destination == LOC_RIGHT_HAND)));
+                    return (dstCard.getType() == Card.Type.HERO || ((dstCard.getType() == Card.Type.SHIELD || dstCard.getType() == Card.Type.MONSTER_TAMED) && (destination == LOC_LEFT_HAND || destination == LOC_RIGHT_HAND)));
                 } else {
                     return false;
+                }
+            case MONSTER_TAMED:
+                if (dstCard != null) {
+                    return (dstCard.getType() == Card.Type.MONSTER && destination < 10 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
+                } else {
+                    return (source < 10 && destination == LOC_BACKPACK) || ((source < 10 || source == LOC_BACKPACK) && (destination == LOC_LEFT_HAND || destination == LOC_RIGHT_HAND));
                 }
             case WEAPON:
                 if (dstCard != null) {
@@ -483,6 +490,7 @@ public class BoardView extends View {
                         case MIDAS:
                             return (dstCard.getType() != Card.Type.HERO && dstCard.getValue() > 0 && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case BLOODPACT:
+                        case TAME:
                             return (dstCard.getType() == Card.Type.MONSTER && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case POISON:
                             return (dstCard.getType() == Card.Type.POTION && dstCard.getAbility() == null && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
@@ -505,6 +513,7 @@ public class BoardView extends View {
         Card card = location >= 10 ? mRowBottom[location - 10].getCard() : mRowTop[location].getCard();
         switch (card.getType()) {
             case MONSTER:
+            case MONSTER_TAMED: //TODO check
                 return false;
             case WEAPON:
             case SHIELD:
@@ -554,7 +563,7 @@ public class BoardView extends View {
                         takeDamage(srcCard.getValue());
                         destroyCard(srcPosition);
                     }
-                } else if (dstCard != null && dstCard.getType() == Card.Type.SHIELD) { //Block attack
+                } else if (dstCard != null && (dstCard.getType() == Card.Type.SHIELD || dstCard.getType() == Card.Type.MONSTER_TAMED)) { //Block attack
                     if (dstCard.getValue() > srcCard.getValue()) { //Shield can take damage (and more)
                         dstCard.setValue(dstCard.getValue() - srcCard.getValue());
                         animateCardSuffer(destination);
@@ -568,6 +577,7 @@ public class BoardView extends View {
                 }
                 break;
             case WEAPON:
+            case MONSTER_TAMED:
                 if (dstCard != null && dstCard.getType() == Card.Type.MONSTER) { //Attack
                     if (dstCard.getValue() > srcCard.getValue()) { //Mob can take damage (and more)
                         dstCard.setValue(dstCard.getValue() - srcCard.getValue());
@@ -1016,6 +1026,11 @@ public class BoardView extends View {
                             }
                             destroyCard(srcPosition);
                             break;
+                        case TAME:
+                            dstCard.setType(Card.Type.MONSTER_TAMED);
+                            animateCardSuffer(destination);
+                            destroyCard(srcPosition);
+                            break;
                         case FEAST:
                             int feastedValue = 0;
                             for (int i = 0; i < 4; i++) {
@@ -1347,6 +1362,7 @@ public class BoardView extends View {
                     canvas.drawText(text, rect.right - mFontPadding - mTextPaint.measureText(text), rect.bottom - mFontSize - mFontPadding - mTextPaint.ascent(), mTextPaint);
                     break;
                 case MONSTER:
+                case MONSTER_TAMED:
                     mPaint.setColor(COLOR_REGULAR);
                     mPaint.setStyle(Paint.Style.FILL);
                     mPaint.setStrokeWidth(STROKE_WIDTH);
@@ -1379,6 +1395,14 @@ public class BoardView extends View {
                     mTextPaint.setTextSize(mFontSize * 9 / 10);
                     text = String.valueOf(card.getName());
                     canvas.drawText(text, (rect.right + rect.left - mTextPaint.measureText(text)) / 2, rect.bottom - mFontSize - mFontPadding - mTextPaint.ascent(), mTextPaint);
+                    if (card.getType() == Card.Type.MONSTER_TAMED) {
+                        mPaint.setColor(COLOR_REGULAR);
+                        canvas.drawLine(cx - radius * 3 / 2, cy - radius * 3 / 2, cx + radius * 3 / 2, cy + radius * 3 / 2, mPaint);
+                        canvas.drawLine(cx - radius * 3 / 2, cy + radius * 3 / 2, cx + radius * 3 / 2, cy - radius * 3 / 2, mPaint);
+                        mTextPaint.setColor(COLOR_SPECIAL);
+                        text = "\u221e";
+                        canvas.drawText(text, rect.right - mFontPadding - mTextPaint.measureText(text), rect.bottom - mFontSize - mFontPadding - mTextPaint.ascent(), mTextPaint);
+                    }
                     break;
                 case WEAPON: {
                     mPaint.setColor(COLOR_REGULAR);

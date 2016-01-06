@@ -5,7 +5,7 @@ public class Card {
     public static final int HERO_MAX = 13;
 
     public enum Type {
-        HERO, MONSTER, WEAPON, SHIELD, POTION, COIN, ABILITY
+        HERO, MONSTER, MONSTER_TAMED, WEAPON, SHIELD, POTION, COIN, ABILITY
     }
 
     public enum Ability {
@@ -44,7 +44,7 @@ public class Card {
         BRIBE("Remove a dungeon card and pay its value in gold"),
         STAB("Trigger redraw. It will hit a random dungeon card"),
         //        HEIST("Shuffle the last 3 cards sold to shop into the deck"),
-//        TAME("Equip a monster as a sword or shield"),
+        TAME("Equip a monster as a sword or shield"), //TODO check discard/sale possibility
         FEAST("A dungeon card gains the values of its adjacent cards and destroys them"),
         CHAOS("All cards including the player randomly swap their values"), //TODO test
 //        FAITH("Double the value of the next 3 cards form the top of the deck"),
