@@ -74,6 +74,7 @@ public class BoardView extends View {
     private int mHealthAddition;
     private int mDamageTakenDuringTurn;
     private int mBountyTargetsDelivered;
+    private int mFaithCardsAwaiting;
     private boolean isFreshDeal;
     private boolean isDamageTakenDuringTurn;
     private boolean isNeedToReviveHero;
@@ -154,6 +155,7 @@ public class BoardView extends View {
         mHealthAddition = 0;
         mDamageTakenDuringTurn = 0;
         mBountyTargetsDelivered = 0;
+        mFaithCardsAwaiting = 0;
         mDealAnimationCount = 0;
         mReceiveAnimationCount = 0;
         mDropAnimationCount = 0;
@@ -171,7 +173,7 @@ public class BoardView extends View {
         invalidate();
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.TAME);
+//        card.setAbility(Card.Ability.FAITH);
 //        mRowTop[0].setCard(card);
 //        mRowTop[1].setCard(Card.getOther(Card.Type.MONSTER, 7));
 //        mRowTop[2].setCard(Card.getOther(Card.Type.MONSTER, 7));
@@ -193,7 +195,12 @@ public class BoardView extends View {
                 destroyCard(mRowBottom[i]);
             }
             if (mRowTop[i].getCard() == null) {
-                animateDealCard(mDeck.deal(), i);
+                Card deal = mDeck.deal();
+                if (mFaithCardsAwaiting > 0 && deal.getValue() > 0) {
+                    deal.setValue(deal.getValue() * 2);
+                    mFaithCardsAwaiting--;
+                }
+                animateDealCard(deal, i);
             }
         }
         isFreshDeal = true;
@@ -464,6 +471,7 @@ public class BoardView extends View {
                         case DOOM:
                         case STAB:
                         case CHAOS:
+                        case FAITH:
                         case CHAMPION:
                             return (dstCard.getType() == Card.Type.HERO && (source == LOC_LEFT_HAND || source == LOC_RIGHT_HAND));
                         case LEECH:
@@ -737,12 +745,19 @@ public class BoardView extends View {
                             destroyCard(dstPosition);
                             Card exchangedCard = mDeck.deal(mDeck.find(Card.Type.ABILITY));
                             if (exchangedCard != null) {
+                                if (mFaithCardsAwaiting > 0 && exchangedCard.getValue() > 0) {
+                                    exchangedCard.setValue(exchangedCard.getValue() * 2);
+                                }
                                 animateDealCard(exchangedCard, destination);
-                            }
+                            } //TODO miss
                             destroyCard(srcPosition);
                             break;
                         case STEAL:
                             Card stolenCard = mDeck.deal();
+                            if (mFaithCardsAwaiting > 0 && stolenCard.getValue() > 0) {
+                                stolenCard.setValue(stolenCard.getValue() * 2);
+                                mFaithCardsAwaiting--;
+                            }
                             if (stolenCard.getType() == Card.Type.COIN) { //Coins
                                 animateCardDisable(LOC_BACKPACK);
                                 addCoins(stolenCard.getValue());
@@ -1083,6 +1098,11 @@ public class BoardView extends View {
                             }
                             destroyCard(srcPosition);
                             break;
+                        case FAITH:
+                            mFaithCardsAwaiting +=srcCard.getValue();
+                            animateCardImprove(destination);
+                            destroyCard(srcPosition);
+                            break;
                         case CHAMPION:
                             destroyCard(srcPosition);
                             while (mDeck.size() > 0) {
@@ -1358,7 +1378,7 @@ public class BoardView extends View {
                     text = String.format("\u2666%d", mCoins);
                     canvas.drawText(text, rect.left + mFontPadding, rect.bottom - mFontSize - mFontPadding - mTextPaint.ascent(), mTextPaint);
                     mTextPaint.setColor(COLOR_SPECIAL);
-                    text = String.format("%s%s", isNeedToReflectDamage ? "\u2746" : "", isNeedToReviveHero ? "\u2665" : "");
+                    text = String.format("%s%s%s", isNeedToReflectDamage ? "\u2746" : "", isNeedToReviveHero ? "\u2665" : "", mFaithCardsAwaiting > 0 ? "\u271F": "");
                     canvas.drawText(text, rect.right - mFontPadding - mTextPaint.measureText(text), rect.bottom - mFontSize - mFontPadding - mTextPaint.ascent(), mTextPaint);
                     break;
                 case MONSTER:

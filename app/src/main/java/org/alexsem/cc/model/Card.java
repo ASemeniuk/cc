@@ -47,7 +47,7 @@ public class Card {
         TAME("Equip a monster as a sword or shield"), //TODO check discard/sale possibility
         FEAST("A dungeon card gains the values of its adjacent cards and destroys them"),
         CHAOS("All cards including the player randomly swap their values"), //TODO test
-//        FAITH("Double the value of the next 3 cards form the top of the deck"),
+        FAITH("Double the value of the next 3 cards form the top of the deck"),
         CHAMPION("Exit the dungeon victorious");
 
         Ability(String description) {
@@ -127,6 +127,7 @@ public class Card {
                 case LEECH:
                 case LASH:
                 case BOUNTY:
+                case FAITH:
                     this.setValue(3);
                     break;
                 case FORTIFY:
