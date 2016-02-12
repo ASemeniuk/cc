@@ -172,9 +172,9 @@ public class BoardView extends View {
         isMeasurementChanged = true;
         invalidate();
 
-//        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.FAITH);
-//        mRowTop[0].setCard(card);
+        Card card = Card.getSpecial(); //TODO
+        card.setAbility(Card.Ability.TRADE);
+        mRowTop[0].setCard(card);
 //        mRowTop[1].setCard(Card.getOther(Card.Type.MONSTER, 7));
 //        mRowTop[2].setCard(Card.getOther(Card.Type.MONSTER, 7));
 //        while (mDeck.size() > 0) {
@@ -465,7 +465,7 @@ public class BoardView extends View {
                         case LUCKY:
                         case LIFE:
                         case BLEED:
-                        case SUICIDE:
+//TODO                        case SUICIDE:
                         case BOUNTY:
                         case DIGGER:
                         case DOOM:
@@ -521,7 +521,7 @@ public class BoardView extends View {
         Card card = location >= 10 ? mRowBottom[location - 10].getCard() : mRowTop[location].getCard();
         switch (card.getType()) {
             case MONSTER:
-            case MONSTER_TAMED: //TODO check
+            case MONSTER_TAMED:
                 return false;
             case WEAPON:
             case SHIELD:
@@ -617,8 +617,8 @@ public class BoardView extends View {
                         } else { //Mob will be defeated
                             animateCardCrack(dstCard, destination);
                         }
-                        if (srcCard.getValue() > 5) {
-                            srcCard.setValue(srcCard.getValue() - 5);
+                        if (srcCard.getValue() > 1) {
+                            srcCard.setValue(srcCard.getValue() - 1);
                             animateCardSuffer(source);
                             float distance = (float) Math.sqrt(mDragRelX * mDragRelX + mDragRelY * mDragRelY);
                             mDragReturnTicks = (int) (distance / mDragReturnSpeed);
@@ -699,16 +699,9 @@ public class BoardView extends View {
                             destroyCard(srcPosition);
                             break;
                         case LEECH:
-                            int leeched = Math.min(srcCard.getValue(), dstCard.getValue());
-                            if (dstCard.getValue() > leeched) { //Mob can take damage (and more)
-                                dstCard.setValue(dstCard.getValue() - leeched);
-                                animateCardSuffer(destination);
-                            } else { //Mob will be defeated
-                                animateCardCrack(dstCard, destination);
-                            }
-                            destroyCard(srcPosition);
-                            hero.setValue(Math.min(Card.HERO_MAX + mHealthAddition, hero.getValue() + leeched));
+                            hero.setValue(Math.min(Card.HERO_MAX + mHealthAddition, hero.getValue() + dstCard.getValue()));
                             animateCardImprove(LOC_HERO);
+                            destroyCard(srcPosition);
                             break;
                         case SACRIFICE:
                             int sacrificed = Card.HERO_MAX + mHealthAddition - hero.getValue();
@@ -851,7 +844,7 @@ public class BoardView extends View {
                             destroyCard(srcPosition);
                             break;
                         case TRADE:
-                            addCoins(10);
+                            addCoins(dstCard.getValue() * 2);
                             mDragRelX = 0;
                             mDragRelY = 0;
                             mTouchedLocation = destination;
@@ -936,16 +929,16 @@ public class BoardView extends View {
                             } //TODO miss
                             destroyCard(srcPosition);
                             break;
-                        case SUICIDE:
-                            for (int i = 0; i < mRowTop.length; i++) {
-                                if (mRowTop[i].getCard() != null) {
-                                    animateReceiveCard(mRowTop[i].getCard(), i, false);
-                                    destroyCard(mRowTop[i]);
-                                }
-                                animateDealCard(Card.getOther(Card.Type.MONSTER, (int) (Math.random() * 9 + 2)), i);
-                            }
-                            destroyCard(srcPosition);
-                            break;
+//TODO                        case SUICIDE:
+//                            for (int i = 0; i < mRowTop.length; i++) {
+//                                if (mRowTop[i].getCard() != null) {
+//                                    animateReceiveCard(mRowTop[i].getCard(), i, false);
+//                                    destroyCard(mRowTop[i]);
+//                                }
+//                                animateDealCard(Card.getOther(Card.Type.MONSTER, (int) (Math.random() * 9 + 2)), i);
+//                            }
+//                            destroyCard(srcPosition);
+//                            break;
                         case BLOODPACT:
                             Card heroCard = mRowBottom[1].getCard();
                             int tempHp = dstCard.getValue();
@@ -1052,16 +1045,11 @@ public class BoardView extends View {
                                 Card card = mRowTop[i].getCard();
                                 if (Math.abs(i - destination) == 1 && card != null && card.getValue() > 0) {
                                     feastedValue += card.getValue();
-                                    animateCardCrack(card, i);
                                 }
                             }
                             if (feastedValue > 0) {
-                                if (dstCard.getValue() > feastedValue) {
-                                    animateCardSuffer(destination);
-                                } else {
-                                    animateCardImprove(destination);
-                                }
-                                dstCard.setValue(feastedValue);
+                                animateCardImprove(destination);
+                                dstCard.setValue(dstCard.getValue() + feastedValue);
                             } //TODO miss
                             destroyCard(srcPosition);
                             break;
@@ -1099,7 +1087,7 @@ public class BoardView extends View {
                             destroyCard(srcPosition);
                             break;
                         case FAITH:
-                            mFaithCardsAwaiting +=srcCard.getValue();
+                            mFaithCardsAwaiting += srcCard.getValue();
                             animateCardImprove(destination);
                             destroyCard(srcPosition);
                             break;
@@ -1378,7 +1366,7 @@ public class BoardView extends View {
                     text = String.format("\u2666%d", mCoins);
                     canvas.drawText(text, rect.left + mFontPadding, rect.bottom - mFontSize - mFontPadding - mTextPaint.ascent(), mTextPaint);
                     mTextPaint.setColor(COLOR_SPECIAL);
-                    text = String.format("%s%s%s", isNeedToReflectDamage ? "\u2746" : "", isNeedToReviveHero ? "\u2665" : "", mFaithCardsAwaiting > 0 ? "\u271F": "");
+                    text = String.format("%s%s%s", isNeedToReflectDamage ? "\u2746" : "", isNeedToReviveHero ? "\u2665" : "", mFaithCardsAwaiting > 0 ? "\u271F" : "");
                     canvas.drawText(text, rect.right - mFontPadding - mTextPaint.measureText(text), rect.bottom - mFontSize - mFontPadding - mTextPaint.ascent(), mTextPaint);
                     break;
                 case MONSTER:
