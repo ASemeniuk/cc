@@ -46,7 +46,7 @@ public class Card {
         //TODO        HEIST("Shuffle the last 3 cards sold to shop into the deck"),
         TAME("Equip a monster as a sword or shield"),
         FEAST("Raise a dungeon cards value by the values of its adjacent cards"),
-        CHAOS("All cards including the player randomly swap their values"), //TODO test
+        CHAOS("All cards including the player randomly swap their values"),
         FAITH("Double the value of the next 3 cards form the top of the deck"),
         CHAMPION("Exit the dungeon victorious");
 

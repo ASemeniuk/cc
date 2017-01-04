@@ -19,8 +19,10 @@ import org.alexsem.cc.model.Animation;
 import org.alexsem.cc.model.Card;
 import org.alexsem.cc.model.Deck;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
 
 public class BoardView extends View {
@@ -70,6 +72,7 @@ public class BoardView extends View {
     private Position[] mRowTop = new Position[4];
     private Position[] mRowBottom = new Position[4];
     private List<Card> mGraveyard = new ArrayList<>();
+    private Deque<Card> mShop = new ArrayDeque<>();
     private int mCoins;
     private int mHealthAddition;
     private int mDamageTakenDuringTurn;
@@ -148,6 +151,7 @@ public class BoardView extends View {
             mDisableAnimationBottom[i] = null;
         }
         mGraveyard.clear();
+        mShop.clear();
         mHeroAnimation = null;
         mDiscardAnimation = null;
         mDiscardBox = new Box();
@@ -172,9 +176,9 @@ public class BoardView extends View {
         isMeasurementChanged = true;
         invalidate();
 
-        Card card = Card.getSpecial(); //TODO
-        card.setAbility(Card.Ability.TRADE);
-        mRowTop[0].setCard(card);
+//        Card card = Card.getSpecial(); //TODO
+//        card.setAbility(Card.Ability.CHAOS);
+//        mRowTop[0].setCard(card);
 //        mRowTop[1].setCard(Card.getOther(Card.Type.MONSTER, 7));
 //        mRowTop[2].setCard(Card.getOther(Card.Type.MONSTER, 7));
 //        while (mDeck.size() > 0) {
@@ -1173,9 +1177,11 @@ public class BoardView extends View {
             case SHIELD:
             case POTION:
                 addCoins(card.getValue());
+                mShop.push(card);
                 animateCardDiscard(location);
                 break;
             case COIN:
+                //TODO maybe add to shop?
                 animateCardDiscard(location);
                 break;
         }
