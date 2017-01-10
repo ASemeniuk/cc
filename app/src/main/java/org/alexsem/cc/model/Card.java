@@ -43,7 +43,7 @@ public class Card {
         DOOM("Remove all cards and reduce the players life to 1"),
         BRIBE("Remove a dungeon card and pay its value in gold"),
         STAB("Trigger redraw. It will hit a random dungeon card"),
-        //TODO        HEIST("Shuffle the last 3 cards sold to shop into the deck"),
+        HEIST("Shuffle the last 3 cards sold to shop into the deck"),
         TAME("Equip a monster as a sword or shield"),
         FEAST("Raise a dungeon cards value by the values of its adjacent cards"),
         CHAOS("All cards including the player randomly swap their values"),

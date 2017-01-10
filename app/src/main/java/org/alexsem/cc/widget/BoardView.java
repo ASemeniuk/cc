@@ -72,7 +72,7 @@ public class BoardView extends View {
     private Position[] mRowTop = new Position[4];
     private Position[] mRowBottom = new Position[4];
     private List<Card> mGraveyard = new ArrayList<>();
-    private Deque<Card> mShop = new ArrayDeque<>();
+    private List<Card> mShop = new ArrayList<>();
     private int mCoins;
     private int mHealthAddition;
     private int mDamageTakenDuringTurn;
@@ -177,7 +177,7 @@ public class BoardView extends View {
         invalidate();
 
 //        Card card = Card.getSpecial(); //TODO
-//        card.setAbility(Card.Ability.CHAOS);
+//        card.setAbility(Card.Ability.HEIST);
 //        mRowTop[0].setCard(card);
 //        mRowTop[1].setCard(Card.getOther(Card.Type.MONSTER, 7));
 //        mRowTop[2].setCard(Card.getOther(Card.Type.MONSTER, 7));
@@ -469,11 +469,12 @@ public class BoardView extends View {
                         case LUCKY:
                         case LIFE:
                         case BLEED:
-//TODO                        case SUICIDE:
+//TODO                        case WORSHIP:
                         case BOUNTY:
                         case DIGGER:
                         case DOOM:
                         case STAB:
+                        case HEIST:
                         case CHAOS:
                         case FAITH:
                         case CHAMPION:
@@ -933,14 +934,7 @@ public class BoardView extends View {
                             } //TODO miss
                             destroyCard(srcPosition);
                             break;
-//TODO                        case SUICIDE:
-//                            for (int i = 0; i < mRowTop.length; i++) {
-//                                if (mRowTop[i].getCard() != null) {
-//                                    animateReceiveCard(mRowTop[i].getCard(), i, false);
-//                                    destroyCard(mRowTop[i]);
-//                                }
-//                                animateDealCard(Card.getOther(Card.Type.MONSTER, (int) (Math.random() * 9 + 2)), i);
-//                            }
+//TODO                        case WORSHIP:
 //                            destroyCard(srcPosition);
 //                            break;
                         case BLOODPACT:
@@ -1035,6 +1029,16 @@ public class BoardView extends View {
                                         destroyCard(mRowTop[i]);
                                     }
                                 }
+                            }
+                            destroyCard(srcPosition);
+                            break;
+                        case HEIST:
+                            for (int count = 0; count < 3 && mShop.size() > 0; count++) {
+                                int random = (int) (Math.random() * mShop.size());
+                                Card resedCard = Card.clone(mShop.get(random));
+                                resedCard.restoreState();
+                                animateReceiveCard(resedCard, count + 10, true);
+                                mShop.remove(random);
                             }
                             destroyCard(srcPosition);
                             break;
@@ -1177,11 +1181,10 @@ public class BoardView extends View {
             case SHIELD:
             case POTION:
                 addCoins(card.getValue());
-                mShop.push(card);
+                mShop.add(card);
                 animateCardDiscard(location);
                 break;
             case COIN:
-                //TODO maybe add to shop?
                 animateCardDiscard(location);
                 break;
         }
