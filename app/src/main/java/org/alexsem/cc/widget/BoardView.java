@@ -2340,7 +2340,7 @@ public class BoardView extends View {
         public void draw(Canvas canvas) {
             RectF rect = mRowBottom[1].getRect();
             canvas.save();
-            canvas.clipRect(rect.left, curRelHeight, rect.right, rect.bottom);
+            canvas.clipRect(rect.left, curRelHeight, rect.right, rect.bottom, Region.Op.INTERSECT);
             drawPosition(canvas, mRowBottom[1], CardState.REGULAR);
             canvas.restore();
         }
@@ -2389,7 +2389,7 @@ public class BoardView extends View {
         public void draw(Canvas canvas) {
             RectF rect = mRowBottom[1].getRect();
             canvas.save();
-            canvas.clipRect(rect.left, curRelHeight, rect.right, rect.bottom);
+            canvas.clipRect(rect.left, curRelHeight, rect.right, rect.bottom, Region.Op.INTERSECT);
             drawPosition(canvas, mRowBottom[1], CardState.REGULAR);
             canvas.restore();
             canvas.drawColor(Color.argb((int) curTint, 0, 0, 0));
@@ -2640,7 +2640,7 @@ public class BoardView extends View {
             mPaint.setColor(COLOR_BG_TINT);
             mPaint.setStyle(Paint.Style.FILL);
             canvas.save();
-            canvas.clipPath(path, Region.Op.REPLACE);
+            canvas.clipPath(path/*, Region.Op.REPLACE*/);
             canvas.drawCircle(cx, cy, curRadius, mPaint);
             canvas.restore();
             mPaint.setAlpha(255);
@@ -2700,7 +2700,7 @@ public class BoardView extends View {
         @Override
         public void draw(Canvas canvas) {
             canvas.save();
-            canvas.clipPath(path, Region.Op.REPLACE);
+            canvas.clipPath(path/*, Region.Op.REPLACE*/);
             canvas.translate(curX, 0f);
             drawCard(canvas, position.getCard(), oldRect, CardState.SHARP);
             drawCard(canvas, newCard, newRect, CardState.SHARP);
